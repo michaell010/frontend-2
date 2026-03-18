@@ -1,0 +1,228 @@
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* ── Panel izquierdo (visual) ───────────── */
+.login-visual {
+  background: linear-gradient(135deg, var(--green-900) 0%, #2e5a2e 60%, var(--green-700) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-visual__grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(74,222,128,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,222,128,0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+.login-visual__glow {
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74,222,128,0.15), transparent 70%);
+  top: -100px; right: -100px;
+  pointer-events: none;
+}
+
+.login-visual__logo {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 0.875rem;
+}
+
+.login-visual__logo-icon {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--green-500), var(--green-400));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 16px rgba(74,222,128,0.3);
+}
+
+.login-visual__logo-name {
+  font-family: var(--font-serif);
+  font-size: 1.3rem; font-weight: 900; color: #fff;
+}
+
+.login-visual__logo-tag {
+  font-size: 0.65rem; font-weight: 600;
+  color: var(--green-300);
+  text-transform: uppercase; letter-spacing: 0.12em;
+  display: block;
+}
+
+.login-visual__content {
+  position: relative; z-index: 1;
+}
+
+.login-visual__h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 900; color: #fff;
+  line-height: 1.15; margin-bottom: 1.25rem;
+}
+
+.login-visual__h1 span { color: var(--green-400); }
+
+.login-visual__p {
+  font-size: 1rem; color: rgba(255,255,255,0.6);
+  line-height: 1.8; max-width: 380px; margin-bottom: 2.5rem;
+}
+
+.login-visual__features { display: flex; flex-direction: column; gap: 0.875rem; }
+
+.login-visual__feature {
+  display: flex; align-items: center; gap: 0.875rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-md);
+  padding: 0.875rem 1.25rem;
+}
+
+.login-visual__feature-ico { font-size: 1.2rem; }
+
+.login-visual__feature-text {
+  font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.8);
+}
+
+.login-visual__footer {
+  position: relative; z-index: 1;
+  font-size: 0.75rem; color: rgba(255,255,255,0.3);
+}
+
+/* ── Panel derecho (formulario) ─────────── */
+.login-form-panel {
+  display: flex; align-items: center; justify-content: center;
+  padding: 3rem; background: var(--surface-white);
+}
+
+.login-form-box { width: 100%; max-width: 420px; }
+
+.login-form-box__back {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.82rem; font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 2.5rem; cursor: pointer;
+  border: none; background: none;
+  transition: color var(--transition-fast);
+}
+
+.login-form-box__back:hover { color: var(--green-700); }
+
+.login-form-box__eyebrow {
+  font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.15em;
+  color: var(--green-600); margin-bottom: 0.5rem;
+}
+
+.login-form-box__h1 {
+  font-family: var(--font-serif);
+  font-size: 2rem; font-weight: 900;
+  color: var(--text-primary); margin-bottom: 0.5rem;
+}
+
+.login-form-box__sub {
+  font-size: 0.875rem; color: var(--text-muted); margin-bottom: 2.5rem;
+}
+
+/* Campos */
+.login-field { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
+
+.login-label { font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); }
+
+.login-input-wrap { position: relative; }
+
+.login-input-ico {
+  position: absolute; left: 1rem; top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem; color: var(--text-faint);
+  pointer-events: none;
+}
+
+.login-input {
+  padding-left: 2.75rem;
+  height: 48px;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+}
+
+/* Error */
+.login-error {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  font-size: 0.82rem; color: #b91c1c;
+  margin-bottom: 1.25rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+
+/* Opciones */
+.login-opts {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.75rem; font-size: 0.82rem;
+}
+
+.login-opts__remember { display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); cursor: pointer; }
+.login-opts__remember input { width: auto; }
+.login-opts__forgot { color: var(--green-600); font-weight: 600; cursor: pointer; }
+.login-opts__forgot:hover { color: var(--green-700); }
+
+/* Botón submit */
+.login-submit {
+  width: 100%; height: 48px;
+  background: var(--green-700);
+  color: #fff; font-size: 0.95rem; font-weight: 700;
+  border-radius: var(--radius-md);
+  border: none; cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-green-sm);
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+
+.login-submit:hover:not(:disabled) {
+  background: var(--green-800);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-green-md);
+}
+
+.login-submit:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+/* Spinner */
+.login-spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Demo */
+.login-demo {
+  margin-top: 1.75rem;
+  padding: 1rem;
+  background: var(--green-50);
+  border: 1px solid var(--green-200);
+  border-radius: var(--radius-md);
+  font-size: 0.78rem; color: var(--text-muted);
+  text-align: center;
+}
+
+.login-demo strong { color: var(--green-700); }
+
+/* ── Responsive ─────────────────────────── */
+@media (max-width: 900px) {
+  .login-page { grid-template-columns: 1fr; }
+  .login-visual { display: none; }
+  .login-form-panel { padding: 2rem 1.5rem; }
+}
