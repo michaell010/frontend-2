@@ -1,0 +1,104 @@
+/* ═══════════════════════════════════════════
+   GANACONTROL — Navbar
+   ═══════════════════════════════════════════ */
+
+.gc-navbar {
+  position: fixed;
+  top: 0; right: 0;
+  left: var(--sidebar-width);
+  height: var(--navbar-height);
+  background: var(--navbar-bg);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 var(--space-8);
+  z-index: var(--z-navbar);
+  transition: left var(--transition-normal);
+}
+
+.gc-navbar.sidebar-collapsed { left: var(--sidebar-collapsed); }
+
+/* Izquierda */
+.gc-navbar__left { display: flex; align-items: center; gap: var(--space-4); }
+
+.gc-navbar__page-title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
+
+/* Derecha */
+.gc-navbar__right { display: flex; align-items: center; gap: var(--space-4); }
+
+/* Búsqueda */
+.gc-navbar__search {
+  display: flex; align-items: center; gap: var(--space-2);
+  background: var(--surface-light);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  padding: 0.4rem 1rem;
+  transition: all var(--transition-fast);
+  min-width: 220px;
+}
+
+.gc-navbar__search:focus-within {
+  border-color: var(--green-400);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.08);
+}
+
+.gc-navbar__search-icon { font-size: 0.9rem; color: var(--text-faint); }
+
+.gc-navbar__search-input {
+  border: none; background: transparent;
+  font-size: 0.85rem; color: var(--text-primary);
+  width: 100%; outline: none; box-shadow: none; padding: 0;
+}
+
+.gc-navbar__search-input::placeholder { color: var(--text-faint); }
+
+/* Icono botón */
+.gc-navbar__icon-btn {
+  position: relative;
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none; background: none;
+}
+
+.gc-navbar__icon-btn:hover { background: var(--green-50); color: var(--green-700); }
+
+.gc-navbar__notif-dot {
+  position: absolute; top: 7px; right: 7px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--color-danger);
+  border: 2px solid #fff;
+}
+
+/* Perfil */
+.gc-navbar__user {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: 0.35rem 0.75rem 0.35rem 0.35rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+}
+
+.gc-navbar__user:hover { background: var(--green-50); border-color: var(--green-200); }
+
+.gc-navbar__avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-700), var(--green-500));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif);
+  font-weight: 900; font-size: 0.9rem; color: #fff; flex-shrink: 0;
+}
+
+.gc-navbar__user-info { display: flex; flex-direction: column; }
+
+.gc-navbar__user-name { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+
+.gc-navbar__user-role { font-size: 0.62rem; font-weight: 600; color: var(--green-600); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.gc-navbar__chevron { font-size: 0.75rem; color: var(--text-faint); }
