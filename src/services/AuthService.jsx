@@ -1,21 +1,25 @@
 import api from "./api";
 
 export const login = async (correo, contrasena) => {
-  const data = await api("/auth/login", {
+  const res = await api("/auth/login", {
     method: "POST",
     body: JSON.stringify({ correo, contrasena }),
   });
-  if (data.ok && data.data?.accessToken) {
-    localStorage.setItem("token",        data.data.accessToken);
-    localStorage.setItem("refreshToken", data.data.refreshToken);
-    localStorage.setItem("usuario",      JSON.stringify(data.data.usuario || {}));
+
+  // Este backend devuelve res.mensaje.data.token
+  const token   = res?.mensaje?.data?.token;
+  const usuario = res?.mensaje?.data?.usuario;
+
+  if (res.ok && token) {
+    localStorage.setItem("token",   token);
+    localStorage.setItem("usuario", JSON.stringify(usuario || {}));
   }
-  return data;
+
+  return res;
 };
 
 export const logout = () => {
   localStorage.removeItem("token");
-  localStorage.removeItem("refreshToken");
   localStorage.removeItem("usuario");
 };
 
