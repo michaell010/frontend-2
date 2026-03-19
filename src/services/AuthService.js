@@ -5,13 +5,11 @@ export const login = async (correo, contrasena) => {
     method: "POST",
     body: JSON.stringify({ correo, contrasena }),
   });
-
   if (data.ok && data.data?.accessToken) {
     localStorage.setItem("token",        data.data.accessToken);
     localStorage.setItem("refreshToken", data.data.refreshToken);
     localStorage.setItem("usuario",      JSON.stringify(data.data.usuario || {}));
   }
-
   return data;
 };
 
