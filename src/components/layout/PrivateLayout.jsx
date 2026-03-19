@@ -15,7 +15,6 @@ const PAGE_TITLES = {
   "/pasturas":               "Potreros",
   "/ventas":                 "Ventas",
   "/finanzas":               "Cockpit Financiero",
-  "/reportes":               "Reportes",
   "/configuracion/finca":    "Configuración",
   "/configuracion/usuarios": "Usuarios",
 };
@@ -32,7 +31,10 @@ export default function PrivateLayout() {
 
   return (
     <div className="gc-private-layout">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(c => !c)} />
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={() => setCollapsed((c) => !c)}
+      />
       <div className={`gc-main-content${collapsed ? " sidebar-collapsed" : ""}`}>
         <Navbar collapsed={collapsed} pageTitle={pageTitle} />
         <main className="gc-page-body">
