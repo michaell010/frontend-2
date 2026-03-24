@@ -1,152 +1,345 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import "../../../styles/modules/Ganado.css";
 
-const ANIMALES = [
-  { id:"GN-001", nombre:"Cara Blanca", raza:"Brahman",    edad:36, peso:480, potrero:"Potrero A1", estado:"Activo",    color:"#22c55e", img:"https://lh3.googleusercontent.com/aida-public/AB6AXuArW-QEqRpP4naKqaMRsFuT97jCL55C5bwwyv5jsXEmAsjCUiJ7m6BHZxPJ52PwyJtxrbEUH3CIiuzStqawwDqWH-tNcBPTtYWST04ha7lCbL1LY3vbJZWgzKIbq170fO_iefE0rXany6_EGAOdhflbVOjiZbCcy7Xy3Kttji5DIeVHCqU9CMY_7C0rFNT6JMCYM230Wmo_gZywrnzbBtK2dVQXnyvbdF4p0N_gQ5K9jLav-QCaCncwMES5vLr2Ijylvu5z27WNyls" },
-  { id:"GN-002", nombre:"La Negra",    raza:"Angus",      edad:48, peso:520, potrero:"Potrero B2", estado:"Gestante",  color:"#f59e0b", img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBHSHS-PDLZM_cTDqHfmm6GtkYdkXiUOXmtEFURzIICsjnEj0QCIN79jMsikR7RaI-QeogK6Dec_JPfTHHQUjphKRxNziED0NFUI-7_B5h-LcxaZEq93yIlaXUxP10n-L-dRB1DaPXDJFSjX1IOuxkv6vG9GA6MU8fpMUNvwU4A3voYjMxEWIOkScd1e-85Mstbk3l0gxndWmS_625Ni8jZHyLc35e36mRS0vG4SftXKl9Wb_fbMoNftOfe4kW4_OWVKVbj0E-VCC0" },
-  { id:"GN-007", nombre:"Lucero",      raza:"Simmental",  edad:24, peso:380, potrero:"Potrero A1", estado:"Activo",    color:"#22c55e", img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBt86E7HX8yiQB3ZLZwIz339DeXhGc61Y746LSbHfYchqJHHDAyN7BgH98vdyYZun59NMGRBGzs24S5SRE1Bx0teaQBd1UAOJUCoSUS9F7tbNRauE7LpPiriRE2vcsB6dahTaa4G0zxuZ9PnG795daMLOPXJa9PUEQgvlbovKWYie3ltNqSCaedifssqtVJCWY45OIKZ60uQLTDSLJOM-t0PxbLBUPGN2E2pzEgGp6K_co03zu6E4UtRZ8wRq8rXHQboRDV4GJgszE" },
-  { id:"GN-012", nombre:"Torito Rey",  raza:"Cebú",       edad:18, peso:310, potrero:"Potrero C3", estado:"Vacunar",   color:"#3b82f6", img:"https://lh3.googleusercontent.com/aida-public/AB6AXuArW-QEqRpP4naKqaMRsFuT97jCL55C5bwwyv5jsXEmAsjCUiJ7m6BHZxPJ52PwyJtxrbEUH3CIiuzStqawwDqWH-tNcBPTtYWST04ha7lCbL1LY3vbJZWgzKIbq170fO_iefE0rXany6_EGAOdhflbVOjiZbCcy7Xy3Kttji5DIeVHCqU9CMY_7C0rFNT6JMCYM230Wmo_gZywrnzbBtK2dVQXnyvbdF4p0N_gQ5K9jLav-QCaCncwMES5vLr2Ijylvu5z27WNyls" },
-  { id:"GN-019", nombre:"La Mona",     raza:"Holstein",   edad:60, peso:590, potrero:"Potrero B2", estado:"Activo",    color:"#22c55e", img:"https://lh3.googleusercontent.com/aida-public/AB6AXuBt86E7HX8yiQB3ZLZwIz339DeXhGc61Y746LSbHfYchqJHHDAyN7BgH98vdyYZun59NMGRBGzs24S5SRE1Bx0teaQBd1UAOJUCoSUS9F7tbNRauE7LpPiriRE2vcsB6dahTaa4G0zxuZ9PnG795daMLOPXJa9PUEQgvlbovKWYie3ltNqSCaedifssqtVJCWY45OIKZ60uQLTDSLJOM-t0PxbLBUPGN2E2pzEgGp6K_co03zu6E4UtRZ8wRq8rXHQboRDV4GJgszE" },
-];
+import { ganadoService } from "../../../services/ganado.service";
+import { PER_PAGE } from "./ganado.constants";
+
+import useToasts from "./hooks/useToasts";
+import useTabla from "./hooks/useTabla";
+
+import GanadoHero from "./components/GanadoHero";
+import GanadoKPIs from "./components/GanadoKPIs";
+import GanadoCards from "./components/GanadoCards";
+
+import GanadoSearch from "./components/GanadoSearch";
+import GanadoFiltros from "./components/GanadoFiltros";
+import GanadoTabla from "./components/GanadoTabla";
+import GanadoPaginacion from "./components/GanadoPaginacion";
+
+import ModalNuevoRegistro from "./modals/ModalNuevoRegistro";
+import ModalEditar from "./modals/ModalEditar";
+import ModalDetalle from "./modals/ModalDetalle";
+import ModalConfirmarEliminar from "./modals/ModalConfirmarEliminar";
+import ModalExportar from "./modals/ModalExportar";
+
+import ToastContainer from "./ui/ToastContainer";
 
 export default function ListadoGanado() {
-  const navigate  = useNavigate();
-  const [busqueda, setBusqueda] = useState("");
+  const [animales, setAnimales] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorCarga, setErrorCarga] = useState("");
 
-  const filtrados = ANIMALES.filter(a =>
-    a.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    a.id.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const { toasts, addToast } = useToasts();
+  const tabla = useTabla(animales);
+
+  const [modalNuevo, setModalNuevo] = useState(false);
+  const [modalEditar, setModalEditar] = useState(null);
+  const [modalDetalle, setModalDetalle] = useState(null);
+  const [modalEliminar, setModalEliminar] = useState(null);
+  const [modalExport, setModalExport] = useState(false);
+
+  const cargarGanado = async (mostrarToast = true) => {
+    try {
+      setLoading(true);
+      setErrorCarga("");
+
+      const lista = await ganadoService.listar();
+      setAnimales(Array.isArray(lista) ? lista : []);
+    } catch (err) {
+      const mensaje = err?.mensaje || "No se pudo cargar el ganado.";
+      setErrorCarga(mensaje);
+
+      if (mostrarToast) {
+        addToast(mensaje, "error");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let activo = true;
+
+    const cargarInicial = async () => {
+      try {
+        setLoading(true);
+        setErrorCarga("");
+
+        const lista = await ganadoService.listar();
+
+        if (!activo) return;
+        setAnimales(Array.isArray(lista) ? lista : []);
+      } catch (err) {
+        if (!activo) return;
+
+        const mensaje = err?.mensaje || "No se pudo cargar el ganado.";
+        setErrorCarga(mensaje);
+        addToast(mensaje, "error");
+      } finally {
+        if (activo) {
+          setLoading(false);
+        }
+      }
+    };
+
+    cargarInicial();
+
+    return () => {
+      activo = false;
+    };
+  }, []);
+
+  const handleGuardar = async (form) => {
+    try {
+      const nuevo = await ganadoService.crear(form);
+
+      if (!nuevo) {
+        throw new Error("No se recibió el registro creado.");
+      }
+
+      setAnimales((prev) => [nuevo, ...prev]);
+      setModalNuevo(false);
+
+      addToast(
+        `✨ ${nuevo.nombre || nuevo.codigo || "Registro"} registrado correctamente`,
+        "success"
+      );
+
+      return nuevo;
+    } catch (err) {
+      addToast(err?.mensaje || "No se pudo crear el registro.", "error");
+      throw err;
+    }
+  };
+
+  const handleActualizar = async (form) => {
+    try {
+      const actualizado = await ganadoService.actualizar(form);
+
+      if (!actualizado) {
+        throw new Error("No se recibió el registro actualizado.");
+      }
+
+      setAnimales((prev) =>
+        prev.map((a) => (a.id === actualizado.id ? actualizado : a))
+      );
+
+      setModalEditar(null);
+
+      if (modalDetalle?.id === actualizado.id) {
+        setModalDetalle(actualizado);
+      }
+
+      addToast(
+        `💾 ${actualizado.nombre || actualizado.codigo || "Registro"} actualizado correctamente`,
+        "success"
+      );
+
+      return actualizado;
+    } catch (err) {
+      addToast(err?.mensaje || "No se pudo actualizar el registro.", "error");
+      throw err;
+    }
+  };
+
+  const handleEliminar = async (id) => {
+    try {
+      await ganadoService.eliminar(id);
+
+      const animalEliminado = animales.find((a) => a.id === id);
+
+      setAnimales((prev) => {
+        const actualizados = prev.filter((a) => a.id !== id);
+
+        const totalFiltradosDespues = tabla.filtrados.filter((a) => a.id !== id).length;
+        const totalPaginasDespues = Math.max(
+          1,
+          Math.ceil(totalFiltradosDespues / PER_PAGE)
+        );
+
+        if (tabla.pagina > totalPaginasDespues) {
+          tabla.setPagina(totalPaginasDespues);
+        }
+
+        return actualizados;
+      });
+
+      setModalEliminar(null);
+      setModalDetalle(null);
+
+      addToast(
+        `🗑️ ${animalEliminado?.nombre || animalEliminado?.codigo || `Registro ${id}`} eliminado correctamente`,
+        "success"
+      );
+    } catch (err) {
+      addToast(err?.mensaje || "No se pudo eliminar el registro.", "error");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="gc-root gc-animate-in">
+        <div className="ganado-table-section">
+          <div className="ganado-table-header__title">Cargando ganado...</div>
+        </div>
+        <ToastContainer toasts={toasts} />
+      </div>
+    );
+  }
+
+  if (errorCarga) {
+    return (
+      <div className="gc-root gc-animate-in">
+        <div className="ganado-table-section">
+          <div className="ganado-table-header__title">Error al cargar</div>
+          <p style={{ marginTop: 12 }}>{errorCarga}</p>
+
+          <button
+            className="gc-btn gc-btn--secondary gc-btn--sm"
+            onClick={() => cargarGanado(true)}
+          >
+            Reintentar
+          </button>
+        </div>
+
+        <ToastContainer toasts={toasts} />
+      </div>
+    );
+  }
 
   return (
-    <div className="gc-animate-in">
+    <div className="gc-root gc-animate-in">
+      <GanadoHero
+        onNuevoRegistro={() => setModalNuevo(true)}
+        onExportar={() => setModalExport(true)}
+      />
 
-      {/* HERO */}
-      <div className="ganado-hero">
-        <div className="ganado-hero__inner">
-          <div className="ganado-hero__eyebrow">
-            <span style={{ width:32, height:2, background:"var(--green-500)", display:"inline-block" }}></span>
-            Análisis de Hato
-          </div>
-          <h1 className="ganado-hero__h1">Control<span> Ganadero</span></h1>
-          <p className="ganado-hero__p">Telemetría de precisión y trazabilidad completa para sus activos ganaderos.</p>
-          <div className="ganado-hero__btns">
-            <button className="gc-btn gc-btn--primary">➕ Nuevo Registro</button>
-            <button className="gc-btn gc-btn--secondary">📤 Exportar</button>
-          </div>
-        </div>
-      </div>
+      <GanadoKPIs animales={animales} />
+      <GanadoCards animales={animales} onVerDetalle={setModalDetalle} />
 
-      {/* KPIs */}
-      <div className="gc-grid-4" style={{ marginBottom:"var(--space-8)" }}>
-        {[
-          { label:"Total Cabezas",    val:"1,248",   ico:"🐄", sub:"+2.1% este mes" },
-          { label:"Salud Promedio",   val:"98.2%",   ico:"❤️", sub:"Rango óptimo" },
-          { label:"Tasa Crecimiento", val:"1.4 kg/d",ico:"📈", sub:"+0.2 kg vs semana ant." },
-          { label:"Alertas Activas",  val:"3",       ico:"⚠️", sub:"Acción requerida" },
-        ].map((k,i) => (
-          <div key={i} className="gc-kpi">
-            <div style={{ display:"flex", justifyContent:"space-between" }}>
-              <span className="gc-kpi__label">{k.label}</span>
-              <span style={{ fontSize:"1.3rem" }}>{k.ico}</span>
-            </div>
-            <div className="gc-kpi__value">{k.val}</div>
-            <div className="gc-kpi__sub">{k.sub}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* CARDS DESTACADOS */}
-      <div className="ganado-cards">
-        {ANIMALES.slice(0,3).map((a,i) => (
-          <div key={i} className="ganado-card" onClick={() => navigate(`/ganado/${a.id}`)}>
-            <div className="ganado-card__img-wrap">
-              <img src={a.img} alt={a.nombre} className="ganado-card__img" />
-              <span className="ganado-card__id">ID: {a.id}</span>
-              <span className="ganado-card__estado" style={{ background:a.color }}>{a.estado}</span>
-            </div>
-            <div className="ganado-card__body">
-              <div className="ganado-card__nombre">{a.nombre}</div>
-              <div className="ganado-card__raza">{a.raza} • {a.edad} meses</div>
-              <div>
-                <div className="ganado-card__peso">{a.peso} kg</div>
-                <div className="ganado-card__peso-lbl">Peso actual</div>
-              </div>
-              <div className="ganado-card__metrics">
-                <div className="ganado-card__metric">
-                  <span>📍</span>
-                  <div>
-                    <div className="ganado-card__metric-lbl">Potrero</div>
-                    <div className="ganado-card__metric-val">{a.potrero}</div>
-                  </div>
-                </div>
-                <div className="ganado-card__metric">
-                  <span>❤️</span>
-                  <div>
-                    <div className="ganado-card__metric-lbl">Salud</div>
-                    <div className="ganado-card__metric-val">Óptima</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* TABLA */}
       <div className="ganado-table-section">
         <div className="ganado-table-header">
-          <h2 style={{ fontSize:"1.1rem", fontWeight:800 }}>Inventario de Hato</h2>
-          <div style={{ display:"flex", gap:"0.75rem", alignItems:"center" }}>
-            <div className="ganado-table-search">
-              <span>🔍</span>
-              <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar animal..." />
+          <div>
+            <div className="ganado-table-header__title">Inventario de Hato</div>
+
+            {tabla.filtrosActivos > 0 && (
+              <div className="ganado-table-header__filtros-activos">
+                {tabla.filtrosActivos} filtro{tabla.filtrosActivos > 1 ? "s" : ""} activo
+                {tabla.filtrosActivos > 1 ? "s" : ""}
+                <button
+                  className="ganado-table-header__limpiar"
+                  onClick={tabla.limpiarFiltros}
+                >
+                  × Limpiar
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="ganado-table-controls">
+            <GanadoSearch
+              busqueda={tabla.busqueda}
+              onChange={(v) => {
+                tabla.setBusqueda(v);
+                tabla.setPagina(1);
+              }}
+            />
+
+            <div style={{ position: "relative" }}>
+              <button
+                className="gc-btn gc-btn--secondary gc-btn--sm"
+                style={
+                  tabla.filtrosActivos > 0
+                    ? { borderColor: "var(--green-400)", color: "var(--green-700)" }
+                    : {}
+                }
+                onClick={() => tabla.setFiltroOpen((o) => !o)}
+              >
+                🔽 Filtrar {tabla.filtrosActivos > 0 && `(${tabla.filtrosActivos})`}
+              </button>
+
+              {tabla.filtroOpen && (
+                <GanadoFiltros
+                  filtros={tabla.filtros}
+                  onToggle={tabla.toggleFiltro}
+                  onLimpiar={tabla.limpiarFiltros}
+                  onCerrar={() => tabla.setFiltroOpen(false)}
+                />
+              )}
             </div>
-            <button className="gc-btn gc-btn--secondary gc-btn--sm">🔽 Filtrar</button>
+
+            <button
+              className="gc-btn gc-btn--secondary gc-btn--sm"
+              onClick={() => setModalNuevo(true)}
+            >
+              ➕ Agregar
+            </button>
           </div>
         </div>
-        <div className="gc-table-wrap">
-          <table className="gc-table">
-            <thead>
-              <tr>
-                <th>ID</th><th>Nombre</th><th>Raza</th>
-                <th>Edad (meses)</th><th>Peso (kg)</th>
-                <th>Potrero</th><th>Estado</th><th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtrados.map((a,i) => (
-                <tr key={i} style={{ cursor:"pointer" }} onClick={() => navigate(`/ganado/${a.id}`)}>
-                  <td style={{ fontWeight:700, color:"var(--green-700)" }}>{a.id}</td>
-                  <td style={{ fontWeight:600 }}>{a.nombre}</td>
-                  <td>{a.raza}</td>
-                  <td style={{ textAlign:"center" }}>{a.edad}</td>
-                  <td style={{ textAlign:"center", fontWeight:700 }}>{a.peso}</td>
-                  <td>{a.potrero}</td>
-                  <td>
-                    <span className="gc-badge" style={{ background:`${a.color}20`, color:a.color }}>
-                      {a.estado}
-                    </span>
-                  </td>
-                  <td>
-                    <button className="gc-btn gc-btn--ghost gc-btn--sm">Ver →</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div style={{ padding:"1rem 1.5rem", borderTop:"1px solid var(--surface-subtle)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <span style={{ fontSize:"0.78rem", color:"var(--text-muted)" }}>Mostrando {filtrados.length} de {ANIMALES.length} registros</span>
-          <div style={{ display:"flex", gap:"0.5rem" }}>
-            <button className="gc-btn gc-btn--ghost gc-btn--sm" disabled>Anterior</button>
-            <button className="gc-btn gc-btn--primary gc-btn--sm">1</button>
-            <button className="gc-btn gc-btn--ghost gc-btn--sm">Siguiente</button>
-          </div>
-        </div>
+
+        <GanadoTabla
+          filas={tabla.paginados}
+          sortCol={tabla.sortCol}
+          sortDir={tabla.sortDir}
+          onSort={tabla.handleSort}
+          onVerDetalle={setModalDetalle}
+          onEditar={setModalEditar}
+          onEliminar={setModalEliminar}
+        />
+
+        <GanadoPaginacion
+          pagina={tabla.pagina}
+          totalPags={tabla.totalPags}
+          totalFiltrados={tabla.filtrados.length}
+          perPage={PER_PAGE}
+          onChange={tabla.setPagina}
+        />
       </div>
 
+      {modalNuevo && (
+        <ModalNuevoRegistro
+          onClose={() => setModalNuevo(false)}
+          onGuardar={handleGuardar}
+        />
+      )}
+
+      {modalEditar && (
+        <ModalEditar
+          onClose={() => setModalEditar(null)}
+          onGuardar={handleActualizar}
+          animal={modalEditar}
+        />
+      )}
+
+      {modalDetalle && (
+        <ModalDetalle
+          onClose={() => setModalDetalle(null)}
+          onEliminar={handleEliminar}
+          onEditar={(animal) => {
+            setModalDetalle(null);
+            setModalEditar(animal);
+          }}
+          animal={modalDetalle}
+        />
+      )}
+
+      {modalEliminar && (
+        <ModalConfirmarEliminar
+          onClose={() => setModalEliminar(null)}
+          onConfirmar={handleEliminar}
+          animal={modalEliminar}
+        />
+      )}
+
+      {modalExport && (
+        <ModalExportar
+          onClose={() => setModalExport(false)}
+          addToast={addToast}
+          animales={tabla.filtrados}
+        />
+      )}
+
+      <ToastContainer toasts={toasts} />
     </div>
   );
 }
