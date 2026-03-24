@@ -1,150 +1,230 @@
-import { useNavigate } from "react-router-dom";
-import "../../../styles/modules/Modulos.css";
+// src/pages/private/reproduccion/Reproduccion.jsx
+// Pantalla principal del módulo Reproducción.
+// Orquesta estado, CRUD y renderizado. Sin lógica suelta.
 
-const HATO = [
-  { id:"BELLA-0422", linaje:"Angus Purebred", estado:"Gestante",      color:"#22c55e", salud:92, evento:"Inseminación (Mar 12)", fecha:"Mañana" },
-  { id:"DAISY-0398", linaje:"Hereford Mix",   estado:"Gestante",      color:"#22c55e", salud:88, evento:"Ultrasound (Jun 04)",   fecha:"Oct 14, 2025" },
-  { id:"RUBY-0552",  linaje:"Angus Purebred", estado:"Alerta de Celo",color:"#f59e0b", salud:75, evento:"Sensor Actividad (Hoy)",fecha:"PENDIENTE" },
-  { id:"LUNA-0511",  linaje:"Brahman x4",     estado:"Gestante",      color:"#22c55e", salud:95, evento:"Revisión (Sep 20)",    fecha:"Oct 18, 2025" },
-];
+import { useState, useEffect }        from "react";
+import "../../../styles/modules/Reproduccion.css";
 
-const MESES = [
-  { mes:"ENE", pct:60 }, { mes:"FEB", pct:75 }, { mes:"MAR", pct:45 },
-  { mes:"ABR", pct:90 }, { mes:"MAY", pct:80, activo:true }, { mes:"JUN", pct:65 },
-];
+import { reproduccionService }        from "../../../services/reproduccion.service";
+import { PER_PAGE }                   from "./reproduccion.constants";
+import useToasts                      from "./hooks/useToasts";
+import useTablaReproduccion           from "./hooks/useTablaReproduccion";
+
+import ReproduccionHero               from "./components/ReproduccionHero";
+import ReproduccionKPIs               from "./components/ReproduccionKPIs";
+import ReproduccionGrafico            from "./components/ReproduccionGrafico";
+import ReproduccionTimeline           from "./components/ReproduccionTimeline";
+import ReproduccionSearch             from "./components/ReproduccionSearch";
+import ReproduccionFiltros            from "./components/ReproduccionFiltros";
+import ReproduccionTabla              from "./components/ReproduccionTabla";
+import ReproduccionPaginacion         from "./components/ReproduccionPaginacion";
+
+import ModalNuevoServicio             from "./modals/ModalNuevoServicio";
+import ModalEditarServicio            from "./modals/ModalEditarServicio";
+import ModalDetalleServicio           from "./modals/ModalDetalleServicio";
+import ModalConfirmarEliminar         from "./modals/ModalConfirmarEliminar";
+
+import ToastContainer                 from "./ui/ToastContainer";
 
 export default function Reproduccion() {
-  return (
-    <div className="gc-animate-in">
+  /* ── Datos ── */
+  const [registros,  setRegistros]  = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [errorCarga, setErrorCarga] = useState("");
 
-      {/* HERO */}
-      <div className="mod-hero" style={{ marginBottom:"var(--space-8)" }}>
-        <div className="mod-hero__content">
-          <div className="mod-hero__badge">
-            <span className="mod-hero__badge-dot"></span>
-            Protocolo v7.4
-          </div>
-          <h1 className="mod-hero__h1">Reproducción<br/><span>y Genética</span></h1>
-          <p className="mod-hero__p">Optimización algorítmica de linajes y monitoreo gestacional con análisis biomecánico en tiempo real.</p>
-          <div className="mod-hero__btns">
-            <button className="gc-btn gc-btn--primary">➕ Nueva Inseminación</button>
-            <button className="gc-btn gc-btn--secondary">🧬 Dashboard Genético</button>
-          </div>
-        </div>
-        <div className="mod-hero__img-wrap">
-          <img className="mod-hero__img" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRBZJZXbVPUkwBE3Gsi6apMlNG8LaqSHk_-8ftv9CFhLWsG57qdPywNe77mMnlumGfb2LTx7KBF4ii_ssHNicQBKYY6XUIC3G_ZpYyiRQYFaKlag-0F8Vgyk5zDVgWH0Rf4qG5w78AB26D66c160ENJK7r9v1Uj1L1wUYKl8W5STqMcpY_IO-vuynnbY7CXZ4H4dSQqJOC38lmi3UmY3jh-pXPN7JiKbtW_k38YX39CRVjWYym8Q-su9_mjwbPNnn1wL3cngR1UV4" alt="Reproducción" />
-          <div className="mod-hero__img-overlay"></div>
-        </div>
+  /* ── Hooks ── */
+  const { toasts, addToast } = useToasts();
+  const tabla                = useTablaReproduccion(registros);
+
+  /* ── Modales ── */
+  const [modalNuevo,    setModalNuevo]    = useState(false);
+  const [modalEditar,   setModalEditar]   = useState(null);
+  const [modalDetalle,  setModalDetalle]  = useState(null);
+  const [modalEliminar, setModalEliminar] = useState(null);
+
+  /* ── Carga inicial ── */
+  useEffect(() => {
+    let activo = true;
+    const cargar = async () => {
+      try {
+        setLoading(true);
+        setErrorCarga("");
+        const lista = await reproduccionService.listar();
+        if (activo) setRegistros(Array.isArray(lista) ? lista : []);
+      } catch (err) {
+        if (!activo) return;
+        const msg = err?.mensaje || "No se pudo cargar los registros.";
+        setErrorCarga(msg);
+        addToast(msg, "error");
+      } finally {
+        if (activo) setLoading(false);
+      }
+    };
+    cargar();
+    return () => { activo = false; };
+  }, []);
+
+  /* ── CRUD ── */
+  const handleGuardar = async (form) => {
+    try {
+      const nuevo = await reproduccionService.crear(form);
+      if (!nuevo) throw new Error("No se recibió el registro creado.");
+      setRegistros(prev => [nuevo, ...prev]);
+      setModalNuevo(false);
+      addToast(`✨ Servicio #${nuevo.id} registrado correctamente`, "success");
+    } catch (err) {
+      addToast(err?.mensaje || "No se pudo crear el registro.", "error");
+      throw err;
+    }
+  };
+
+  const handleActualizar = async (form) => {
+    try {
+      const actualizado = await reproduccionService.actualizar(form);
+      if (!actualizado) throw new Error("No se recibió el registro actualizado.");
+      setRegistros(prev => prev.map(r => r.id === actualizado.id ? actualizado : r));
+      setModalEditar(null);
+      if (modalDetalle?.id === actualizado.id) setModalDetalle(actualizado);
+      addToast(`💾 Servicio #${actualizado.id} actualizado correctamente`, "success");
+    } catch (err) {
+      addToast(err?.mensaje || "No se pudo actualizar el registro.", "error");
+      throw err;
+    }
+  };
+
+  const handleEliminar = async (id) => {
+    try {
+      await reproduccionService.eliminar(id);
+      setRegistros(prev => {
+        const actualizados = prev.filter(r => r.id !== id);
+        const totalDespues = tabla.filtrados.filter(r => r.id !== id).length;
+        const pagsDespues  = Math.max(1, Math.ceil(totalDespues / PER_PAGE));
+        if (tabla.pagina > pagsDespues) tabla.setPagina(pagsDespues);
+        return actualizados;
+      });
+      setModalEliminar(null);
+      setModalDetalle(null);
+      addToast(`🗑️ Registro #${id} eliminado correctamente`, "success");
+    } catch (err) {
+      addToast(err?.mensaje || "No se pudo eliminar el registro.", "error");
+    }
+  };
+
+  /* ── Loading / Error ── */
+  if (loading) return (
+    <div className="rp-root rp-animate-in">
+      <div className="rp-loading">
+        <div className="rp-loading__spinner" />
+        <p>Cargando registros reproductivos…</p>
       </div>
+      <ToastContainer toasts={toasts} />
+    </div>
+  );
+
+  if (errorCarga) return (
+    <div className="rp-root rp-animate-in">
+      <div className="rp-error-card">
+        <div className="rp-error-card__ico">😔</div>
+        <div className="rp-error-card__title">Error al cargar</div>
+        <p className="rp-error-card__msg">{errorCarga}</p>
+        <button className="rp-btn rp-btn--secondary" onClick={() => window.location.reload()}>
+          Reintentar
+        </button>
+      </div>
+      <ToastContainer toasts={toasts} />
+    </div>
+  );
+
+  /* ── Render ── */
+  return (
+    <div className="rp-root rp-animate-in">
+
+      {/* Hero */}
+      <ReproduccionHero onNuevoServicio={() => setModalNuevo(true)} />
 
       {/* KPIs */}
-      <div className="gc-grid-4" style={{ marginBottom:"var(--space-8)" }}>
-        {[
-          { label:"Tasa de Preñez",    val:"78.5%", ico:"🧪", sub:"+2.4%", pct:"78%" },
-          { label:"Partos Esperados",  val:"42",    ico:"🐄", sub:"Próxima ventana: 72h", pct:"42%" },
-          { label:"Inseminaciones",    val:"56",    ico:"🔬", sub:"Ciclo: Fase final", pct:"56%" },
-          { label:"Eficiencia Genética",val:"85%",  ico:"🧬", sub:"-1.2%", pct:"85%" },
-        ].map((k,i) => (
-          <div key={i} className="gc-kpi">
-            <div style={{ display:"flex", justifyContent:"space-between" }}>
-              <span className="gc-kpi__label">{k.label}</span>
-              <span style={{ fontSize:"1.3rem" }}>{k.ico}</span>
-            </div>
-            <div className="gc-kpi__value">{k.val}</div>
-            <div className="gc-kpi__sub">{k.sub}</div>
-            <div className="gc-kpi__bar">
-              <div className="gc-kpi__bar-fill" style={{ width:k.pct }}></div>
-            </div>
-          </div>
-        ))}
+      <ReproduccionKPIs registros={registros} />
+
+      {/* Gráfico + Timeline */}
+      <div className="rp-grid-main">
+        <ReproduccionGrafico  registros={registros} />
+        <ReproduccionTimeline registros={registros} onVerDetalle={setModalDetalle} />
       </div>
 
-      {/* GRÁFICO + PARTOS */}
-      <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr", gap:"var(--space-6)", marginBottom:"var(--space-8)" }}>
+      {/* Tabla de inventario */}
+      <div className="rp-tabla-section">
 
-        {/* Gráfico */}
-        <div className="gc-card">
-          <h3 style={{ fontWeight:800, marginBottom:"var(--space-6)" }}>Tendencias de Reproducción</h3>
-          <div style={{ height:160, display:"flex", alignItems:"flex-end", gap:"0.75rem", padding:"0 0.5rem" }}>
-            {MESES.map((b,i) => (
-              <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
-                <div style={{ width:"100%", height:`${b.pct}%`, borderRadius:"8px 8px 0 0", background: b.activo ? "linear-gradient(to top,var(--green-700),var(--green-400))" : "var(--green-50)", border: b.activo ? "none" : "1px solid var(--green-100)", boxShadow: b.activo ? "var(--shadow-green-sm)" : "none", transition:"all 0.3s" }}></div>
-                <span style={{ fontSize:"0.65rem", fontWeight:800, color: b.activo ? "var(--green-700)" : "var(--text-faint)", textTransform:"uppercase" }}>{b.mes}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Partos próximos */}
-        <div className="gc-card">
-          <h3 style={{ fontWeight:800, marginBottom:"var(--space-5)" }}>Partos Próximos 🔔</h3>
-          <div className="mod-timeline">
-            {[
-              { nombre:"BELLA #0422", raza:"Angus • 2do Parto",  fecha:"Mañana",       activo:true },
-              { nombre:"DAISY #0398", raza:"Hereford • 1er Parto",fecha:"Oct 14",       activo:false },
-              { nombre:"LUNA #0511",  raza:"Brahman • 4to Parto", fecha:"Oct 18",       activo:false },
-            ].map((p,i) => (
-              <div key={i} className="mod-timeline-item">
-                <div className="mod-timeline-dot-wrap">
-                  <div className="mod-timeline-dot" style={{ background: p.activo ? "var(--green-500)" : "var(--border-light)", boxShadow: p.activo ? "0 0 0 4px rgba(34,197,94,0.15)" : "none" }}></div>
-                  {i < 2 && <div className="mod-timeline-line"></div>}
-                </div>
-                <div style={{ paddingBottom:"0.75rem", flex:1 }}>
-                  <p style={{ fontSize:"0.65rem", fontWeight:700, color: p.activo ? "var(--green-600)" : "var(--text-faint)", textTransform:"uppercase", letterSpacing:"0.1em", margin:0 }}>{p.fecha}</p>
-                  <p style={{ fontWeight:700, color:"var(--text-primary)", margin:"2px 0" }}>{p.nombre}</p>
-                  <p style={{ fontSize:"0.75rem", color:"var(--text-muted)", margin:0 }}>{p.raza}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <button className="gc-btn gc-btn--secondary" style={{ width:"100%", marginTop:"var(--space-4)" }}>Ver Calendario Completo</button>
-        </div>
-      </div>
-
-      {/* TABLA ESTATUS GENÉTICO */}
-      <div className="gc-card" style={{ padding:0, overflow:"hidden" }}>
-        <div className="mod-table-actions">
+        {/* Encabezado y controles */}
+        <div className="rp-tabla-header">
           <div>
-            <h3 style={{ fontWeight:800, margin:0 }}>Estatus Genético del Hato</h3>
-            <p style={{ fontSize:"0.75rem", color:"var(--text-muted)", margin:"4px 0 0" }}>Monitoreo de 154 especímenes reproductivos</p>
+            <div className="rp-tabla-header__title">Registro de Servicios</div>
+            {tabla.filtrosActivos > 0 && (
+              <div className="rp-tabla-header__filtros">
+                {tabla.filtrosActivos} filtro{tabla.filtrosActivos > 1 ? "s" : ""} activo{tabla.filtrosActivos > 1 ? "s" : ""}
+                <button className="rp-tabla-header__limpiar" onClick={tabla.limpiarFiltros}>
+                  × Limpiar
+                </button>
+              </div>
+            )}
           </div>
-          <div style={{ display:"flex", gap:"0.75rem" }}>
-            <button className="gc-btn gc-btn--ghost gc-btn--sm">Filtros Avanzados</button>
-            <button className="gc-btn gc-btn--primary gc-btn--sm">Exportar Reporte</button>
+
+          <div className="rp-tabla-controls">
+            <ReproduccionSearch
+              busqueda={tabla.busqueda}
+              onChange={v => { tabla.setBusqueda(v); tabla.setPagina(1); }}
+            />
+
+            <div style={{ position: "relative" }}>
+              <button
+                className={`rp-btn rp-btn--secondary rp-btn--sm${tabla.filtrosActivos > 0 ? " rp-btn--filtered" : ""}`}
+                onClick={() => tabla.setFiltroOpen(o => !o)}
+              >
+                🔽 Filtrar {tabla.filtrosActivos > 0 && `(${tabla.filtrosActivos})`}
+              </button>
+              {tabla.filtroOpen && (
+                <ReproduccionFiltros
+                  filtros={tabla.filtros}
+                  onToggle={tabla.toggleFiltro}
+                  onLimpiar={tabla.limpiarFiltros}
+                  onCerrar={() => tabla.setFiltroOpen(false)}
+                />
+              )}
+            </div>
+
+            <button className="rp-btn rp-btn--primary rp-btn--sm" onClick={() => setModalNuevo(true)}>
+              ➕ Agregar
+            </button>
           </div>
         </div>
-        <div className="gc-table-wrap">
-          <table className="gc-table">
-            <thead>
-              <tr>
-                <th>Identificador</th><th>Linaje Genético</th><th>Estatus</th>
-                <th>Último Evento</th><th>Fecha Estimada</th><th>Índice Salud</th>
-              </tr>
-            </thead>
-            <tbody>
-              {HATO.map((a,i) => (
-                <tr key={i} style={{ cursor:"pointer" }}>
-                  <td style={{ fontWeight:800, color:"var(--green-700)" }}>{a.id}</td>
-                  <td>{a.linaje}</td>
-                  <td>
-                    <span className="gc-badge" style={{ background:`${a.color}20`, color:a.color }}>{a.estado}</span>
-                  </td>
-                  <td style={{ color:"var(--text-muted)" }}>{a.evento}</td>
-                  <td style={{ fontWeight:700 }}>{a.fecha}</td>
-                  <td>
-                    <div style={{ display:"flex", alignItems:"center", gap:"0.5rem" }}>
-                      <div style={{ flex:1, height:6, background:"var(--surface-subtle)", borderRadius:999, overflow:"hidden", maxWidth:80 }}>
-                        <div style={{ height:"100%", width:`${a.salud}%`, background:"linear-gradient(to right,var(--green-700),var(--green-400))", borderRadius:999 }}></div>
-                      </div>
-                      <span style={{ fontSize:"0.72rem", fontWeight:700, color:"var(--green-700)" }}>{a.salud}%</span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+
+        {/* Tabla */}
+        <ReproduccionTabla
+          filas={tabla.paginados}
+          sortCol={tabla.sortCol}
+          sortDir={tabla.sortDir}
+          onSort={tabla.handleSort}
+          onVerDetalle={setModalDetalle}
+          onEditar={setModalEditar}
+          onEliminar={setModalEliminar}
+        />
+
+        {/* Paginación */}
+        <ReproduccionPaginacion
+          pagina={tabla.pagina}
+          totalPags={tabla.totalPags}
+          totalFiltrados={tabla.filtrados.length}
+          perPage={PER_PAGE}
+          onChange={tabla.setPagina}
+        />
       </div>
+
+      {/* Modales */}
+      {modalNuevo   && <ModalNuevoServicio   onClose={() => setModalNuevo(false)}   onGuardar={handleGuardar}    />}
+      {modalEditar  && <ModalEditarServicio  onClose={() => setModalEditar(null)}   onGuardar={handleActualizar} registro={modalEditar}  />}
+      {modalDetalle && <ModalDetalleServicio onClose={() => setModalDetalle(null)}  onEditar={setModalEditar}    onEliminar={setModalEliminar} registro={modalDetalle} />}
+      {modalEliminar && <ModalConfirmarEliminar onClose={() => setModalEliminar(null)} onConfirmar={handleEliminar} registro={modalEliminar} />}
+
+      <ToastContainer toasts={toasts} />
     </div>
   );
 }
