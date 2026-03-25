@@ -16,7 +16,7 @@ import ListadoEventos   from "../pages/private/eventos/ListadoEventos";
 import ListadoInventario from "../pages/private/inventario/ListadoInventario";
 import Reproduccion     from "../pages/private/reproduccion/Reproduccion";
 import CockpitFinanciero from "../pages/private/finanzas/CockpitFinanciero";
-import MallaDigital     from "../pages/private/pasturas/MallaDigital";
+import Potreros     from "../pages/private/pasturas/Potreros";
 import ListadoVentas    from "../pages/private/ventas/ListadoVentas";
 import Configuracion    from "../pages/private/configuracion/Configuracion";
 
@@ -37,7 +37,7 @@ export default function AppRouter() {
           <Route path="/inventario"   element={<ListadoInventario />} />
           <Route path="/reproduccion" element={<Reproduccion />} />
           <Route path="/finanzas"     element={<CockpitFinanciero />} />
-          <Route path="/pasturas"     element={<MallaDigital />} />
+          <Route path="/pasturas"     element={<Potreros />} />
           <Route path="/ventas"       element={<ListadoVentas />} />
           <Route path="/configuracion/finca"    element={<Configuracion />} />
           <Route path="/configuracion/usuarios" element={<Configuracion />} />
