@@ -12,6 +12,7 @@ import DashBoard from "../pages/private/dashboard/DashBoard";
 
 // Módulos privados
 import ListadoGanado    from "../pages/private/ganado/ListadoGanado";
+import ListadoAlimentacion    from "../pages/private/alimentacion/ListadoAlimentacion";
 import ListadoEventos   from "../pages/private/eventos/ListadoEventos";
 import ListadoInventario from "../pages/private/inventario/ListadoInventario";
 import Reproduccion     from "../pages/private/reproduccion/Reproduccion";
@@ -33,6 +34,7 @@ export default function AppRouter() {
         <Route element={<PrivateLayout />}>
           <Route path="/dashboard"    element={<DashBoard />} />
           <Route path="/ganado"       element={<ListadoGanado />} />
+          <Route path="/alimentacion" element={<ListadoAlimentacion />} />
           <Route path="/eventos"      element={<ListadoEventos />} />
           <Route path="/inventario"   element={<ListadoInventario />} />
           <Route path="/reproduccion" element={<Reproduccion />} />
