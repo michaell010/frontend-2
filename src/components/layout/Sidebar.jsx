@@ -8,6 +8,7 @@ import icoInventario   from "../../assets/icons/inventario.png";
 import icoPotreros     from "../../assets/icons/potreros.png";
 import icoFinanzas     from "../../assets/icons/finanzas.png";
 import icoAlimentacion from "../../assets/icons/alimentacion.png";
+import icoConfiguracion from "../../assets/icons/configuracion.png";
 import "../../styles/Sidebar.css";
 // ── Menú de navegación ───────────────────────────────────────────
 const MENU = [
@@ -43,7 +44,7 @@ const MENU = [
   {
     seccion: "Sistema",
     items: [
-      { label: "Configuración", href: "/configuracion/finca", img: null, ico: "⚙️" },
+      { label: "Configuración", href: "/configuracion/finca", img: icoConfiguracion},
     ],
   },
 ];
