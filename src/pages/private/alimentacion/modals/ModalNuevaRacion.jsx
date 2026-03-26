@@ -11,8 +11,7 @@ const EMPTY = {
   tipo_alimento:   "",
   cantidad_kg:     "",
   frecuencia:      "",
-  costo_unitario:  "",
-  fecha_registro:  new Date().toISOString().split("T")[0], // hoy por defecto
+  fecha_registro:  new Date().toISOString().split("T")[0],
   observaciones:   "",
 };
 
@@ -30,9 +29,9 @@ const validate = (f) => {
 
 export default function ModalNuevaRacion({ onClose, onGuardar }) {
   const [form, setForm] = useState(EMPTY);
-  const [errors, setErrors]             = useState({});
-  const [loading, setLoading]           = useState(false);
-  const [animales, setAnimales]         = useState([]);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [animales, setAnimales] = useState([]);
   const [loadingAnimales, setLoadingAnimales] = useState(true);
 
   useEffect(() => {
@@ -57,10 +56,16 @@ export default function ModalNuevaRacion({ onClose, onGuardar }) {
 
   const handleGuardar = async () => {
     const e = validate(form);
-    if (Object.keys(e).length) { setErrors(e); return; }
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
+    }
     setLoading(true);
-    try { await onGuardar(form); }
-    finally { setLoading(false); }
+    try {
+      await onGuardar(form);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

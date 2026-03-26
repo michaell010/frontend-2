@@ -1,22 +1,22 @@
 // src/pages/private/alimentacion/components/AlimentacionTabla.jsx
 
 import BadgeAlimentacion from "../ui/BadgeAlimentacion";
-import { formatFecha, formatCantidad, formatCOP, diasDesde } from "../alimentacion.constants";
+import { formatFecha, formatCantidad, diasDesde } from "../alimentacion.constants";
 
 const COLS = [
-  { key: "id",             label: "ID",            sortable: true  },
-  { key: "animal",         label: "Animal",         sortable: true  },
-  { key: "tipo_animal",    label: "Tipo",           sortable: true  },
-  { key: "nombre_alimento",label: "Alimento",       sortable: true  },
-  { key: "tipo_alimento",  label: "Categoría",      sortable: true  },
-  { key: "cantidad_kg",    label: "Cantidad",       sortable: true  },
-  { key: "frecuencia",     label: "Frecuencia",     sortable: false },
-  { key: "fecha_registro", label: "Fecha Registro", sortable: true  },
+  { key: "id", label: "ID", sortable: true },
+  { key: "animal", label: "Animal", sortable: true },
+  { key: "tipo_animal", label: "Tipo Animal", sortable: true },
+  { key: "nombre_alimento", label: "Alimento", sortable: true },
+  { key: "tipo_alimento", label: "Categoría", sortable: true },
+  { key: "cantidad", label: "Cantidad", sortable: true },
+  { key: "frecuencia", label: "Frecuencia", sortable: true },
+  { key: "fecha", label: "Fecha", sortable: true },
 ];
 
 const TIPO_ANIMAL_ICO = {
-  Vaca:    "🐄",
-  Toro:    "🐂",
+  Vaca: "🐄",
+  Toro: "🐂",
   Ternero: "🐮",
   Novillo: "🐃",
 };

@@ -1,7 +1,7 @@
 // src/pages/private/alimentacion/modals/ModalDetalleRacion.jsx
 
 import BadgeAlimentacion from "../ui/BadgeAlimentacion";
-import { formatFecha, formatCantidad, formatCOP, TIPO_ALIMENTO_STYLES } from "../alimentacion.constants";
+import { formatFecha, formatCantidad, TIPO_ALIMENTO_STYLES } from "../alimentacion.constants";
 
 const Item = ({ label, value }) => {
   const esVacio = value === null || value === undefined || value === "";
@@ -21,10 +21,7 @@ export default function ModalDetalleRacion({ registro, onClose, onEditar, onElim
   if (!registro) return null;
 
   const nombreAnimal = registro.animal?.nombre || registro.animal?.codigo || `Animal #${registro.animal_id}`;
-  const estilo       = TIPO_ALIMENTO_STYLES[registro.tipo_alimento] ?? TIPO_ALIMENTO_STYLES.Otro;
-  const costoTotal   = registro.costo_unitario && registro.cantidad_kg
-    ? formatCOP(parseFloat(registro.costo_unitario) * parseFloat(registro.cantidad_kg))
-    : null;
+  const estilo = TIPO_ALIMENTO_STYLES[registro.tipo_alimento] ?? TIPO_ALIMENTO_STYLES.Otro;
 
   return (
     <div className="al-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -46,15 +43,14 @@ export default function ModalDetalleRacion({ registro, onClose, onEditar, onElim
 
         <div className="al-modal__body">
           <div className="al-detail-grid">
-            <Item label="Animal"         value={nombreAnimal} />
+            <Item label="Animal" value={nombreAnimal} />
             <Item label="Tipo de Animal" value={registro.tipo_animal} />
-            <Item label="Alimento"       value={registro.nombre_alimento} />
-            <Item label="Categoría"      value={<BadgeAlimentacion tipo={registro.tipo_alimento} />} />
-            <Item label="Cantidad"       value={formatCantidad(registro.cantidad_kg)} />
-            <Item label="Frecuencia"     value={registro.frecuencia?.replace("_", " ")} />
+            <Item label="Alimento" value={registro.nombre_alimento} />
+            <Item label="Categoría" value={<BadgeAlimentacion tipo={registro.tipo_alimento} />} />
+            <Item label="Cantidad" value={formatCantidad(registro.cantidad_kg)} />
+            <Item label="Frecuencia" value={registro.frecuencia?.replace("_", " ")} />
             <Item label="Fecha Registro" value={formatFecha(registro.fecha_registro)} />
-            <Item label="Costo/kg"       value={registro.costo_unitario ? formatCOP(registro.costo_unitario) : null} />
-            {costoTotal && <Item label="Costo Total Ración" value={costoTotal} />}
+            <Item label="Producto asociado" value={registro.producto?.nombre || "No asociado"} />
           </div>
 
           {registro.observaciones && (
@@ -66,9 +62,9 @@ export default function ModalDetalleRacion({ registro, onClose, onEditar, onElim
         </div>
 
         <div className="al-modal__footer">
-          <button className="al-btn al-btn--ghost"     onClick={() => { onEliminar(registro); onClose(); }}>🗑️ Eliminar</button>
+          <button className="al-btn al-btn--ghost" onClick={() => { onEliminar(registro); onClose(); }}>🗑️ Eliminar</button>
           <button className="al-btn al-btn--secondary" onClick={() => { onClose(); onEditar(registro); }}>✏️ Editar</button>
-          <button className="al-btn al-btn--primary"   onClick={onClose}>Cerrar</button>
+          <button className="al-btn al-btn--primary" onClick={onClose}>Cerrar</button>
         </div>
       </div>
     </div>

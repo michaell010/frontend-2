@@ -24,9 +24,12 @@ export default function RacionForm({
 }) {
   const s = (k, v) => onChange(k, v);
 
-  // Filtra animales según tipo_animal seleccionado
   const animalesFiltrados = form.tipo_animal
-    ? animales.filter(a => a.tipo === form.tipo_animal || a.tipo_animal === form.tipo_animal)
+    ? animales.filter(a =>
+        a.tipo === form.tipo_animal ||
+        a.tipo_animal === form.tipo_animal ||
+        a.categoria === form.tipo_animal
+      )
     : animales;
 
   return (
@@ -39,7 +42,7 @@ export default function RacionForm({
           value={form.tipo_animal || ""}
           onChange={e => {
             s("tipo_animal", e.target.value);
-            s("animal_id", ""); // reset al cambiar tipo
+            s("animal_id", "");
           }}
           disabled={esEdicion}
         >
@@ -117,19 +120,7 @@ export default function RacionForm({
         </select>
       </Field>
 
-      <div className="al-form-section-divider">Costos y Fechas</div>
-
-      <Field label="Costo Unitario (COP/kg)">
-        <input
-          className="al-form-input"
-          type="number"
-          min="0"
-          step="1"
-          placeholder="Ej: 1200"
-          value={form.costo_unitario || ""}
-          onChange={e => s("costo_unitario", e.target.value)}
-        />
-      </Field>
+      <div className="al-form-section-divider">Fecha y Notas</div>
 
       <Field label="Fecha de Registro" required error={errors.fecha_registro}>
         <input
