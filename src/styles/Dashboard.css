@@ -104,7 +104,12 @@
 .dashboard__alerta--ok { background: rgba(34,197,94,0.06); border-color: rgba(34,197,94,0.15); }
 .dashboard__alerta--ok:hover { border-color: rgba(34,197,94,0.3); }
 
-.dashboard__alerta-ico { font-size: 1.4rem; flex-shrink: 0; }
+.dashboard__alerta-ico {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  margin-right: 12px;
+}
 .dashboard__alerta-titulo { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
 .dashboard__alerta-desc { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
 
