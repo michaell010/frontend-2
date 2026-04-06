@@ -161,68 +161,64 @@ export default function Potreros() {
       <PotreroKPIs potreros={potreros} />
 
       <div className="pt-tabla-section">
-        <div className="pt-tabla-header">
-          <div>
-            <div className="pt-tabla-header__title">Registro de Potreros</div>
+<div className="pt-toolbar">
 
-            {totalFiltrosActivos > 0 && (
-              <div className="pt-tabla-header__filtros">
-                {totalFiltrosActivos} filtro{totalFiltrosActivos > 1 ? "s" : ""} activo
-                {totalFiltrosActivos > 1 ? "s" : ""}
-                <button
-                  className="pt-tabla-header__limpiar"
-                  onClick={tabla.limpiarFiltros}
-                >
-                  × Limpiar
-                </button>
-              </div>
-            )}
-          </div>
+  {/* IZQUIERDA → TÍTULO */}
+  <div className="pt-toolbar__left">
+    <h3 className="pt-toolbar__title">Registro de Potreros</h3>
+  </div>
 
-          <div className="pt-tabla-controls">
-            <div className="pt-search">
-              <span className="pt-search__icon">🔎</span>
-              <input
-                value={tabla.busqueda}
-                onChange={(e) => {
-                  tabla.setBusqueda(e.target.value);
-                  tabla.setPagina(1);
-                }}
-                placeholder="Buscar por nombre, id o tipo de pasto..."
-              />
-              {tabla.busqueda && (
-                <button
-                  className="pt-search__clear"
-                  onClick={() => {
-                    tabla.setBusqueda("");
-                    tabla.setPagina(1);
-                  }}
-                >
-                  ✕
-                </button>
-              )}
-            </div>
+  {/* DERECHA → CONTROLES */}
+  <div className="pt-toolbar__right">
 
-            <select
-              className="pt-select"
-              value={tabla.estadoFiltro}
-              onChange={(e) => {
-                tabla.setEstadoFiltro(e.target.value);
-                tabla.setPagina(1);
-              }}
-            >
-              <option value="Todos">Todos los estados</option>
-              <option value="Disponible">Disponible</option>
-              <option value="Ocupado">Ocupado</option>
-              <option value="Mantenimiento">Mantenimiento</option>
-              <option value="Descanso">Descanso</option>
-            </select>
+    <div className="pt-search">
+      <span className="pt-search__icon">🔎</span>
+      <input
+        value={tabla.busqueda}
+        onChange={(e) => {
+          tabla.setBusqueda(e.target.value);
+          tabla.setPagina(1);
+        }}
+        placeholder="Buscar por nombre, id o tipo..."
+      />
+      {tabla.busqueda && (
+        <button
+          className="pt-search__clear"
+          onClick={() => {
+            tabla.setBusqueda("");
+            tabla.setPagina(1);
+          }}
+        >
+          ✕
+        </button>
+      )}
+    </div>
 
-            <button className="pt-btn pt-btn--primary pt-btn--sm" onClick={abrirCrear}>
-              ➕ Agregar
-            </button>
-          </div>
-        </div>
+    <select
+      className="pt-select"
+      value={tabla.estadoFiltro}
+      onChange={(e) => {
+        tabla.setEstadoFiltro(e.target.value);
+        tabla.setPagina(1);
+      }}
+    >
+      <option value="Todos">Todos</option>
+      <option value="Disponible">Disponible</option>
+      <option value="Ocupado">Ocupado</option>
+      <option value="Mantenimiento">Mantenimiento</option>
+      <option value="Descanso">Descanso</option>
+    </select>
+
+    <button
+      className="pt-btn pt-btn--primary"
+      onClick={abrirCrear}
+    >
+      ➕ Agregar
+    </button>
+
+  </div>
+
+</div>
 
         <PotreroTabla
           vista="tabla"
