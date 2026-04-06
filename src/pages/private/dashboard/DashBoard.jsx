@@ -9,13 +9,15 @@ import icoInventario   from "../../../assets/icons/inventario.png";
 import icoPotreros     from "../../../assets/icons/potreros.png";
 import icoFinanzas     from "../../../assets/icons/finanzas.png";
 import icoAlimentacion from "../../../assets/icons/alimentacion.png";
+import icoVerificacion from "../../../assets/icons/verificacion.png";
+import icoAlerta from "../../../assets/icons/alerta.png";
 import "../../../styles/Dashboard.css";
 // ── Datos ────────────────────────────────────────────────────────
 const ALERTAS = [
-  { tipo: "warn", ico: "⚠️", titulo: "Stock bajo",             desc: "Ivermectina 1% y Sal Mineral por debajo del mínimo.", href: "/inventario" },
-  { tipo: "info", ico: "💉", titulo: "Vacunaciones pendientes", desc: "2 animales con eventos sanitarios por completar.",    href: "/eventos" },
-  { tipo: "warn", ico: "🤰", titulo: "Parto próximo",          desc: "GN-002 · La Negra — parto estimado en 3 días.",       href: "/reproduccion" },
-  { tipo: "ok",   ico: "✅", titulo: "Inventario actualizado",  desc: "Concentrado Premium reabastecido correctamente.",     href: "/inventario" },
+  { tipo: "warn", ico: icoAlerta, titulo: "Stock bajo",             desc: "Ivermectina 1% y Sal Mineral por debajo del mínimo.", href: "/inventario" },
+  { tipo: "info", ico: icoSalud, titulo: "Vacunaciones pendientes", desc: "2 animales con eventos sanitarios por completar.",    href: "/eventos" },
+  { tipo: "warn", ico: icoReproduccion, titulo: "Parto próximo",          desc: "GN-002 · La Negra — parto estimado en 3 días.",       href: "/reproduccion" },
+  { tipo: "ok",   ico: icoVerificacion, titulo: "Inventario actualizado",  desc: "Concentrado Premium reabastecido correctamente.",     href: "/inventario" },
 ];
 const MODULOS = [
   { img: icoCow,          label: "Control Ganadero",       desc: "Registro y trazabilidad",     href: "/ganado" },
@@ -29,7 +31,7 @@ const MODULOS = [
 ];
 const KPIS = [
   { label: "Ganado Total",         value: "1,284", sub: "+2.4% este mes",    icon: icoCow,       barPct: 85 },
-  { label: "Alertas Activas",      value: "3",     sub: "Requieren atención",icon: null,         barPct: 30 },
+  { label: "Alertas Activas",      value: "3",     sub: "Requieren atención",icon: icoAlerta,    barPct: 30 },
   { label: "Ingresos Proyectados", value: "$45.2M",sub: "+12.8% interanual", icon: icoFinanzas,  barPct: 72 },
   { label: "Tasa Vacunación",      value: "94%",   sub: "Objetivo cumplido", icon: icoSalud,     barPct: 94 },
 ];
@@ -65,7 +67,7 @@ export default function DashBoard() {
           <div>
             <div className="dashboard__perfil-nombre">{nombre}</div>
             <div className="dashboard__perfil-rol">{rol}</div>
-            <div className="dashboard__perfil-finca">🏠 {finca}</div>
+            <div className="dashboard__perfil-finca">{finca}</div>
           </div>
         </div>
       </div>
@@ -92,33 +94,40 @@ export default function DashBoard() {
         ))}
       </div>
       {/* ── Alertas ── */}
-      <div>
-        <div className="dashboard__section-label">
-          🔔 Alertas activas
-          <span className="dashboard__badge-count">
-            {ALERTAS.filter(a => a.tipo !== "ok").length}
-          </span>
+<div>
+  <div className="dashboard__section-label">
+    Alertas activas
+    <span className="dashboard__badge-count">
+      {ALERTAS.filter(a => a.tipo !== "ok").length}
+    </span>
+  </div>
+
+  <div className="dashboard__alertas">
+    {ALERTAS.map((a, i) => (
+      <div
+        key={i}
+        className={`dashboard__alerta dashboard__alerta--${a.tipo}`}
+        onClick={() => navigate(a.href)}
+      >
+        <img
+          src={icoAlerta}
+          alt="alerta"
+          className="dashboard__alerta-ico"
+        />
+
+        <div>
+          <div className="dashboard__alerta-titulo">{a.titulo}</div>
+          <div className="dashboard__alerta-desc">{a.desc}</div>
         </div>
-        <div className="dashboard__alertas">
-          {ALERTAS.map((a, i) => (
-            <div
-              key={i}
-              className={`dashboard__alerta dashboard__alerta--${a.tipo}`}
-              onClick={() => navigate(a.href)}
-            >
-              <span className="dashboard__alerta-ico">{a.ico}</span>
-              <div>
-                <div className="dashboard__alerta-titulo">{a.titulo}</div>
-                <div className="dashboard__alerta-desc">{a.desc}</div>
-              </div>
-              <span className="dashboard__alerta-arrow">→</span>
-            </div>
-          ))}
-        </div>
+
+        <span className="dashboard__alerta-arrow">→</span>
       </div>
+    ))}
+  </div>
+</div>
       {/* ── Módulos ── */}
       <div>
-        <div className="dashboard__section-label">⚡ Acceso rápido a módulos</div>
+        <div className="dashboard__section-label">Acceso rápido a módulos</div>
         <div className="dashboard__modulos">
           {MODULOS.map((m, i) => (
             <button

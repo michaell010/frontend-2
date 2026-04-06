@@ -21,7 +21,11 @@
 /* Izquierda */
 .gc-navbar__left { display: flex; align-items: center; gap: var(--space-4); }
 
-.gc-navbar__page-title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
+.gc-navbar__page-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
 
 /* Derecha */
 .gc-navbar__right { display: flex; align-items: center; gap: var(--space-4); }
@@ -43,33 +47,69 @@
   box-shadow: 0 0 0 3px rgba(34,197,94,0.08);
 }
 
-.gc-navbar__search-icon { font-size: 0.9rem; color: var(--text-faint); }
-
-.gc-navbar__search-input {
-  border: none; background: transparent;
-  font-size: 0.85rem; color: var(--text-primary);
-  width: 100%; outline: none; box-shadow: none; padding: 0;
+.gc-navbar__search-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }
 
-.gc-navbar__search-input::placeholder { color: var(--text-faint); }
+.gc-navbar__search-input {
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  width: 100%;
+  outline: none;
+  box-shadow: none;
+  padding: 0;
+}
 
-/* Icono botón */
+.gc-navbar__search-input::placeholder {
+  color: var(--text-faint);
+}
+
+/* Botón de icono (notificaciones) */
 .gc-navbar__icon-btn {
   position: relative;
-  width: 38px; height: 38px;
-  display: flex; align-items: center; justify-content: center;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--radius-md);
   color: var(--text-muted);
   cursor: pointer;
   transition: all var(--transition-fast);
-  border: none; background: none;
+  border: none;
+  background: none;
 }
 
-.gc-navbar__icon-btn:hover { background: var(--green-50); color: var(--green-700); }
+.gc-navbar__icon-btn:hover {
+  background: var(--green-50);
+  color: var(--green-700);
+}
 
+/* Imagen dentro del botón (alerta.png) */
+.gc-navbar__icon-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  opacity: 0.8;
+  transition: all var(--transition-fast);
+}
+
+.gc-navbar__icon-btn:hover .gc-navbar__icon-img {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Puntico de notificación */
 .gc-navbar__notif-dot {
-  position: absolute; top: 7px; right: 7px;
-  width: 8px; height: 8px;
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--color-danger);
   border: 2px solid #fff;
@@ -77,7 +117,9 @@
 
 /* Perfil */
 .gc-navbar__user {
-  display: flex; align-items: center; gap: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   padding: 0.35rem 0.75rem 0.35rem 0.35rem;
   border-radius: var(--radius-full);
   cursor: pointer;
@@ -85,20 +127,47 @@
   border: 1px solid transparent;
 }
 
-.gc-navbar__user:hover { background: var(--green-50); border-color: var(--green-200); }
-
-.gc-navbar__avatar {
-  width: 34px; height: 34px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--green-700), var(--green-500));
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-serif);
-  font-weight: 900; font-size: 0.9rem; color: #fff; flex-shrink: 0;
+.gc-navbar__user:hover {
+  background: var(--green-50);
+  border-color: var(--green-200);
 }
 
-.gc-navbar__user-info { display: flex; flex-direction: column; }
+.gc-navbar__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-700), var(--green-500));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-weight: 900;
+  font-size: 0.9rem;
+  color: #fff;
+  flex-shrink: 0;
+}
 
-.gc-navbar__user-name { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+.gc-navbar__user-info {
+  display: flex;
+  flex-direction: column;
+}
 
-.gc-navbar__user-role { font-size: 0.62rem; font-weight: 600; color: var(--green-600); text-transform: uppercase; letter-spacing: 0.06em; }
+.gc-navbar__user-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
 
-.gc-navbar__chevron { font-size: 0.75rem; color: var(--text-faint); }
+.gc-navbar__user-role {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--green-600);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.gc-navbar__chevron {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}

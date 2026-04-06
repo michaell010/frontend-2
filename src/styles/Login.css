@@ -79,15 +79,47 @@
 
 .login-visual__features { display: flex; flex-direction: column; gap: 0.875rem; }
 
-.login-visual__feature {
-  display: flex; align-items: center; gap: 0.875rem;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: var(--radius-md);
-  padding: 0.875rem 1.25rem;
+.login-visual__logo-icon img {
+  width: 35px;
+  height: 35px;
 }
 
-.login-visual__feature-ico { font-size: 1.2rem; }
+.login-visual__feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.login-visual__feature-ico {
+  width: 30px;
+  height: 30px;
+}
+
+.login-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login-input-ico {
+  width: 18px;
+  height: 18px;
+  opacity: 0.6;
+}
+
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ff4d4f;
+}
+
+.login-error-icon {
+  width: 10px;
+  height: 10px;
+  background: #ff4d4f;
+  border-radius: 50%;
+}
 
 .login-visual__feature-text {
   font-size: 0.85rem; font-weight: 500; color: rgba(255,255,255,0.8);

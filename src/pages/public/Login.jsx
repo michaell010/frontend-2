@@ -3,6 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { login } from "../../services/AuthService";
 import "../../styles/Login.css";
 
+// ICONOS
+import cowIcon from "../../assets/icons/cow.png";
+import saludIcon from "../../assets/icons/salud.png";
+import finanzasIcon from "../../assets/icons/finanzas.png";
+import dashboardIcon from "../../assets/icons/dashboard.png";
+
+// reutilizados para inputs (puedes cambiarlos después)
+import userIcon from "../../assets/icons/configuracion.png";
+import lockIcon from "../../assets/icons/contraseña.png";
+
 export default function Login() {
   const navigate = useNavigate();
   const [correo, setCorreo] = useState("");
@@ -45,8 +55,11 @@ export default function Login() {
         <div className="login-visual__grid"></div>
         <div className="login-visual__glow"></div>
 
+        {/* LOGO */}
         <div className="login-visual__logo">
-          <div className="login-visual__logo-icon">🐂</div>
+          <div className="login-visual__logo-icon">
+            <img src={cowIcon} alt="logo" />
+          </div>
           <div>
             <span className="login-visual__logo-name">GanaControl</span>
             <span className="login-visual__logo-tag">Gestión Ganadera</span>
@@ -55,7 +68,7 @@ export default function Login() {
 
         <div className="login-visual__content">
           <h1 className="login-visual__h1">
-            El control total de<span>su finca, digital.</span>
+            El control total de<span> su finca, digital.</span>
           </h1>
 
           <p className="login-visual__p">
@@ -63,15 +76,16 @@ export default function Login() {
             desde una sola plataforma diseñada para el campo colombiano.
           </p>
 
+          {/* FEATURES */}
           <div className="login-visual__features">
             {[
-              ["🐄", "Trazabilidad bovina completa"],
-              ["💉", "Alertas sanitarias automáticas"],
-              ["💰", "Facturación sin errores"],
-              ["📊", "Reportes ejecutivos en tiempo real"],
+              [cowIcon, "Trazabilidad bovina completa"],
+              [saludIcon, "Alertas sanitarias automáticas"],
+              [finanzasIcon, "Facturación sin errores"],
+              [dashboardIcon, "Reportes ejecutivos en tiempo real"],
             ].map(([ico, txt]) => (
               <div key={txt} className="login-visual__feature">
-                <span className="login-visual__feature-ico">{ico}</span>
+                <img src={ico} alt="" className="login-visual__feature-ico" />
                 <span className="login-visual__feature-text">{txt}</span>
               </div>
             ))}
@@ -79,7 +93,7 @@ export default function Login() {
         </div>
 
         <div className="login-visual__footer">
-          © 2025 GanaControl — Hecho en Colombia 🇨🇴
+          © 2025 GanaControl — Hecho en Colombia
         </div>
       </div>
 
@@ -100,10 +114,11 @@ export default function Login() {
           </p>
 
           <form onSubmit={handleSubmit}>
+            {/* CORREO */}
             <div className="login-field">
               <label className="login-label">Correo electrónico</label>
               <div className="login-input-wrap">
-                <span className="login-input-ico">📧</span>
+                <img src={userIcon} alt="" className="login-input-ico" />
                 <input
                   className="login-input"
                   type="email"
@@ -117,10 +132,11 @@ export default function Login() {
               </div>
             </div>
 
+            {/* CONTRASEÑA */}
             <div className="login-field">
               <label className="login-label">Contraseña</label>
               <div className="login-input-wrap">
-                <span className="login-input-ico">🔒</span>
+                <img src={lockIcon} alt="" className="login-input-ico" />
                 <input
                   className="login-input"
                   type="password"
@@ -134,9 +150,11 @@ export default function Login() {
               </div>
             </div>
 
+            {/* ERROR */}
             {error && (
               <div className="login-error">
-                <span>⚠️</span> {error}
+                <span className="login-error-icon"></span>
+                {error}
               </div>
             )}
 
@@ -144,7 +162,9 @@ export default function Login() {
               <label className="login-opts__remember">
                 <input type="checkbox" /> Recordarme
               </label>
-              <span className="login-opts__forgot">¿Olvidaste tu contraseña?</span>
+              <span className="login-opts__forgot">
+                ¿Olvidaste tu contraseña?
+              </span>
             </div>
 
             <button

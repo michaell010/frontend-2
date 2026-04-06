@@ -389,7 +389,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   background: var(--pt-surface);
   border: 1px solid var(--pt-border);
   border-radius: var(--pt-radius-lg);
@@ -398,12 +398,22 @@
   box-shadow: var(--pt-shadow-xs);
 }
 
-.pt-toolbar__left,
+.pt-toolbar__left {
+  display: flex;
+  align-items: center;
+}
+
 .pt-toolbar__right {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.pt-toolbar__title {
+  font-family: var(--pt-font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--pt-text);
 }
 
 .pt-search {

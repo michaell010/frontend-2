@@ -38,7 +38,7 @@ export default function Configuracion() {
     <div className="gc-animate-in">
       <div className="cfg-page-header">
         <div>
-          <h1 className="gc-page-title">⚙️ Configuración</h1>
+          <h1 className="gc-page-title"> Configuración</h1>
           <p className="gc-page-sub">
             Administre la información de la finca, usuarios y roles del sistema.
           </p>

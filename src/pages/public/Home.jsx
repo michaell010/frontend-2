@@ -1,14 +1,17 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 // ── Íconos PNG ───────────────────────────────────────────────────
-import icoCow          from "../../assets/icons/cow.png";
+import icoCow from "../../assets/icons/cow.png";
 import icoReproduccion from "../../assets/icons/reproduccion.png";
-import icoSalud        from "../../assets/icons/salud.png";
-import icoInventario   from "../../assets/icons/inventario.png";
-import icoPotreros     from "../../assets/icons/potreros.png";
-import icoFinanzas     from "../../assets/icons/finanzas.png";
+import icoSalud from "../../assets/icons/salud.png";
+import icoInventario from "../../assets/icons/inventario.png";
+import icoPotreros from "../../assets/icons/potreros.png";
+import icoFinanzas from "../../assets/icons/finanzas.png";
 import icoAlimentacion from "../../assets/icons/alimentacion.png";
-import icoDashboard    from "../../assets/icons/dashboard.png";
+import icoDashboard from "../../assets/icons/dashboard.png";
+import icoObjetivo from "../../assets/icons/objetivo.png";
+import icoVision from "../../assets/icons/vision.png";
+import icoVaca from "../../assets/icons/vaca.png";
 import "../../styles/Home.css";
 // ── Datos ────────────────────────────────────────────────────────
 const MODULOS = [
@@ -22,9 +25,9 @@ const MODULOS = [
   { img: icoDashboard,    nombre: "Mando Central",           desc: "Vista ejecutiva con KPIs clave, alertas activas y resumen de la operación." },
 ];
 const EQUIPO = [
-  { ico: "💻", nombre: "Área de Desarrollo", rol: "Ingeniería de Software", desc: "Arquitectura backend Node.js + MySQL con triggers y vistas optimizadas." },
-  { ico: "🐄", nombre: "Área Agropecuaria",  rol: "Ganadería y Zootecnia",  desc: "Validación de flujos productivos, reproductivos y sanitarios del sistema." },
-  { ico: "🎨", nombre: "Área de Diseño",     rol: "UX / UI Product Design", desc: "Interfaces funcionales centradas en el usuario ganadero colombiano." },
+  { ico: icoDashboard, nombre: "Área de Desarrollo", rol: "Ingeniería de Software", desc: "..." },
+  { ico: icoCow, nombre: "Área Agropecuaria", rol: "Ganadería y Zootecnia", desc: "..." },
+  { ico: icoFinanzas, nombre: "Área de Diseño", rol: "UX / UI Product Design", desc: "..." },
 ];
 // ── Componente ───────────────────────────────────────────────────
 export default function Home() {
@@ -180,11 +183,11 @@ export default function Home() {
           </div>
           <div className="home-mv-grid">
             {[
-              { ico: "🎯", t: "Misión", txt: "Proveer a los ganaderos colombianos una plataforma tecnológica integral que digitalice y optimice cada proceso de la producción bovina — desde el nacimiento hasta la comercialización — reduciendo errores, mejorando la trazabilidad y aumentando la rentabilidad de cada finca." },
-              { ico: "🔭", t: "Visión", txt: "Ser la plataforma de gestión ganadera líder en Colombia y Latinoamérica, reconocida por su robustez técnica, facilidad de uso y compromiso con la modernización del sector agropecuario hacia un modelo de agricultura de precisión sostenible y competitivo." },
+              { ico: icoObjetivo, t: "Misión", txt: "Proveer a los ganaderos colombianos una plataforma tecnológica integral que digitalice y optimice cada proceso de la producción bovina — desde el nacimiento hasta la comercialización — reduciendo errores, mejorando la trazabilidad y aumentando la rentabilidad de cada finca." },
+              { ico: icoVision, t: "Visión", txt: "Ser la plataforma de gestión ganadera líder en Colombia y Latinoamérica, reconocida por su robustez técnica, facilidad de uso y compromiso con la modernización del sector agropecuario hacia un modelo de agricultura de precisión sostenible y competitivo." },
             ].map(({ ico, t, txt }) => (
               <div key={t} className="home-mv-card home-reveal">
-                <div className="home-mv-ico">{ico}</div>
+                <img src={ico} alt="" className="home-mv-ico" />
                 <h3 className="home-mv-title">{t}</h3>
                 <div className="home-mv-line" />
                 <p className="home-mv-text">{txt}</p>
@@ -193,13 +196,13 @@ export default function Home() {
           </div>
           <div className="home-valores">
             {[
-              ["💡", "Innovación",     "Tecnología agropecuaria de vanguardia"],
-              ["🤝", "Confiabilidad",  "Datos íntegros y siempre disponibles"],
-              ["🌱", "Sostenibilidad", "Apoyo al campo colombiano a largo plazo"],
-              ["🎯", "Precisión",      "Cero errores en facturación y trazabilidad"],
+              [icoDashboard, "Innovación",     "Tecnología agropecuaria de vanguardia"],
+              [icoReproduccion, "Confiabilidad",  "Datos íntegros y siempre disponibles"],
+              [icoVaca, "Sostenibilidad", "Apoyo al campo colombiano a largo plazo"],
+              [icoObjetivo, "Precisión",      "Cero errores en facturación y trazabilidad"],
             ].map(([ico, v, d]) => (
               <div key={v} className="home-valor home-reveal">
-                <div className="home-valor__ico">{ico}</div>
+                <img src={ico} alt="" className="home-valor__ico" />
                 <div className="home-valor__name">{v}</div>
                 <div className="home-valor__desc">{d}</div>
               </div>
@@ -217,7 +220,7 @@ export default function Home() {
           <div className="home-equipo-grid">
             {EQUIPO.map((e, i) => (
               <div key={i} className="home-equipo-card home-reveal">
-                <div className="home-equipo-ico">{e.ico}</div>
+                <img src={e.ico} alt="" className="home-equipo-ico" />
                 <div className="home-equipo-name">{e.nombre}</div>
                 <div className="home-equipo-rol">{e.rol}</div>
                 <p className="home-equipo-desc">{e.desc}</p>
