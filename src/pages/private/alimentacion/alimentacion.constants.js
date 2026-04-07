@@ -13,7 +13,7 @@ export const TIPOS_ALIMENTO = [
 
 export const FRECUENCIAS = [
   "Diaria",
-  "Dos_veces_al_dia",
+  "Dos veces al día",
   "Semanal",
   "Quincenal",
   "Mensual",
@@ -91,4 +91,12 @@ export function formatCantidad(kg) {
   const n = parseFloat(kg);
   if (isNaN(n)) return "—";
   return n >= 1 ? `${n} kg` : `${n * 1000} g`;
+}
+
+export function formatFrecuencia(valor) {
+  if (!valor) return "—";
+
+  return valor
+    .replaceAll("_", " ")
+    .replace("dia", "día"); // opcional para tilde
 }

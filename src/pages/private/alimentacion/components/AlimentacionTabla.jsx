@@ -2,6 +2,7 @@
 
 import BadgeAlimentacion from "../ui/BadgeAlimentacion";
 import { formatFecha, formatCantidad, diasDesde } from "../alimentacion.constants";
+import { formatFrecuencia } from "../alimentacion.constants";
 
 const COLS = [
   { key: "id", label: "ID", sortable: true },
@@ -34,7 +35,11 @@ function CeldaAnimal({ r }) {
 }
 
 function CeldaFrecuencia({ frecuencia }) {
-  return <span className="al-frecuencia-chip">{frecuencia?.replace("_", " ") || "—"}</span>;
+  return (
+    <span className="al-frecuencia-chip">
+      {formatFrecuencia(frecuencia)}
+    </span>
+  );
 }
 
 function CeldaFecha({ fecha }) {
