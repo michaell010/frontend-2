@@ -162,7 +162,11 @@ export default function Login() {
               <label className="login-opts__remember">
                 <input type="checkbox" /> Recordarme
               </label>
-              <span className="login-opts__forgot">
+              <span
+                className="login-opts__forgot"
+                style={{ cursor: "pointer" }}
+                onClick={() => navigate("/forgot-password")}
+              >
                 ¿Olvidaste tu contraseña?
               </span>
             </div>

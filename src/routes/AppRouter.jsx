@@ -6,6 +6,8 @@ import PrivateLayout from "../components/layout/PrivateLayout";
 // Páginas públicas
 import Home  from "../pages/public/Home";
 import Login from "../pages/public/Login";
+import ForgotPassword from "../pages/public/ForgotPassword";
+import ResetPassword from "../pages/public/ResetPassword";
 
 // Dashboard
 import DashBoard from "../pages/private/dashboard/DashBoard";
@@ -29,6 +31,8 @@ export default function AppRouter() {
         {/* ── Públicas ── */}
         <Route path="/"      element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* ── Privadas ── */}
         <Route element={<PrivateLayout />}>
