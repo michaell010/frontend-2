@@ -19,14 +19,33 @@ export default function DashBoard() {
     alertasActivas,
     loading,
     error,
+    recargarDashboard,
   } = useDashboard();
 
-  if (loading) {
-    return <div className="db-animate-in">Cargando dashboard...</div>;
+  if (loading && !kpis.length && !alertas.length) {
+    return (
+      <div className="db-animate-in">
+        <div className="db-loading">
+          <div className="db-loading__spinner" />
+          <p>Cargando dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
-  if (error) {
-    return <div className="db-animate-in">No se pudo cargar el dashboard.</div>;
+  if (error && !kpis.length && !alertas.length) {
+    return (
+      <div className="db-animate-in">
+        <div className="db-error-card">
+          <div className="db-error-card__icon">⚠️</div>
+          <h3>No se pudo cargar el dashboard</h3>
+          <p>{error}</p>
+          <button className="db-btn db-btn--primary" onClick={recargarDashboard}>
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

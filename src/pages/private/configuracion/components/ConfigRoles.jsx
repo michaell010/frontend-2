@@ -1,13 +1,20 @@
-// ─── components/ConfigRoles.jsx ──────────────────────────────────────────────
-import { useRoles }        from "../hooks/useRoles";
-import { ModalEditarRol }  from "../modals/ModalEditarRol";
+import { useRoles } from "../hooks/useRoles";
+import { ModalEditarRol } from "../modals/ModalEditarRol";
 
-export function ConfigRoles({ esAdmin, showToast }) {
+export function ConfigRoles({ esAdmin }) {
   const {
-    roles, modalRol, draft, setDraft,
-    nuevoPermiso, setNuevoPermiso,
-    abrirEditar, cerrarModal, guardar, agregarPermiso, quitarPermiso,
-  } = useRoles(showToast);
+    roles,
+    modalRol,
+    draft,
+    setDraft,
+    nuevoPermiso,
+    setNuevoPermiso,
+    abrirEditar,
+    cerrarModal,
+    guardar,
+    agregarPermiso,
+    quitarPermiso,
+  } = useRoles();
 
   return (
     <div>
@@ -27,23 +34,30 @@ export function ConfigRoles({ esAdmin, showToast }) {
                 <h4 className="cfg-rol-nombre">{r.nombre}</h4>
                 <p className="cfg-rol-desc">{r.desc}</p>
               </div>
+
               {esAdmin && (
-                <button className="gc-btn gc-btn--ghost gc-btn--sm" onClick={() => abrirEditar(r)}>
+                <button
+                  className="gc-btn gc-btn--ghost gc-btn--sm"
+                  onClick={() => abrirEditar(r)}
+                >
                   ✏️
                 </button>
               )}
             </div>
+
             <div className="cfg-rol-permisos">
-              {r.permisos.map((p) => (
+              {(r.permisos || []).map((p) => (
                 <div key={p} className="cfg-permiso-item">
                   <span className="cfg-permiso-check">✓</span>
                   <span>{p}</span>
                 </div>
               ))}
             </div>
+
             <div className="cfg-rol-footer">
               <span className="cfg-muted cfg-muted--sm">
-                {r.permisos.length} permiso{r.permisos.length !== 1 ? "s" : ""}
+                {(r.permisos || []).length} permiso
+                {(r.permisos || []).length !== 1 ? "s" : ""}
               </span>
             </div>
           </div>

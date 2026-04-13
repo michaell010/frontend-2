@@ -15,12 +15,15 @@ export const ROLES_DISPONIBLES = [
 ];
 
 export const USUARIO_VACIO = {
+  nombres: "",
+  apellidos: "",
   nombre: "",
   correo: "",
   rol_id: 3,
   finca_id: 1,
   activo: true,
   contrasena: "",
+  confirmarContrasena: "",
 };
 
 export const FINCA_FIELDS = [

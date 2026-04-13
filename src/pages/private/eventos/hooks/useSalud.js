@@ -10,6 +10,12 @@ import {
   obtenerResumenSalud,
 } from "../../../../services/salud.service";
 
+import { notify } from "../../../../services/notify.service";
+import {
+  executeRequest,
+  getErrorMessage,
+} from "../../../../utils/handleRequest";
+
 export function useSalud() {
   const [historialBase, setHistorialBase] = useState([]);
 
@@ -48,12 +54,14 @@ export function useSalud() {
       );
     } catch (err) {
       console.error("Error cargando módulo salud:", err);
-      setError(err?.mensaje || "No se pudo cargar el módulo de salud.");
+      const mensaje = getErrorMessage(err) || "No se pudo cargar el módulo de salud.";
+      setError(mensaje);
       setHistorialBase([]);
       setKpis([]);
       setProximos([]);
       setEstatus([]);
       setHeroStats({});
+      notify.error(mensaje);
     } finally {
       setLoading(false);
     }
@@ -69,69 +77,88 @@ export function useSalud() {
 
       const matchQ =
         !q ||
-        String(ev.id ?? "").toLowerCase().includes(q) ||
-        String(ev.tratamiento ?? "").toLowerCase().includes(q) ||
-        String(ev.vet ?? "").toLowerCase().includes(q) ||
-        String(ev.animalCod ?? "").toLowerCase().includes(q) ||
-        String(ev.animalNombre ?? "").toLowerCase().includes(q) ||
-        String(ev.notas ?? "").toLowerCase().includes(q);
+        String(ev?.id ?? "").toLowerCase().includes(q) ||
+        String(ev?.tratamiento ?? "").toLowerCase().includes(q) ||
+        String(ev?.vet ?? "").toLowerCase().includes(q) ||
+        String(ev?.animalCod ?? "").toLowerCase().includes(q) ||
+        String(ev?.animalNombre ?? "").toLowerCase().includes(q) ||
+        String(ev?.notas ?? "").toLowerCase().includes(q);
 
       const matchE =
-        filtroEstado === "todos" || ev.estadoKey === filtroEstado;
+        filtroEstado === "todos" || ev?.estadoKey === filtroEstado;
 
       return matchQ && matchE;
     });
   }, [historialBase, busqueda, filtroEstado]);
 
   const handleEliminar = useCallback(
-    async (id) => {
-      const confirmar = window.confirm("¿Eliminar este evento sanitario?");
-      if (!confirmar) return;
+    async (evento) => {
+      const id = typeof evento === "object" ? evento?.id : evento;
 
-      setLoading(true);
-      try {
-        await eliminarEvento(id);
-
-        setHistorialBase((prev) => prev.filter((ev) => ev.id !== id));
-
-        if (modalDetalle?.id === id) {
-          setModalDetalle(null);
-        }
-
-        await cargarModulo();
-      } catch (err) {
-        console.error("Error eliminando evento:", err);
-        alert(err?.mensaje || "No se pudo eliminar el evento.");
-      } finally {
-        setLoading(false);
+      if (!id) {
+        notify.error("No se encontró el id del evento");
+        return;
       }
+
+      await executeRequest({
+        confirm: {
+          title: "Eliminar evento sanitario",
+          text: "Esta acción no se puede deshacer.",
+          confirmText: "Sí, eliminar",
+          cancelText: "Cancelar",
+          icon: "warning",
+        },
+        request: () => eliminarEvento(id),
+        loadingMessage: "Eliminando evento...",
+        successMessage: "Evento eliminado correctamente",
+        errorMessage: "No se pudo eliminar el evento",
+        onSuccess: async () => {
+          setHistorialBase((prev) => prev.filter((ev) => ev.id !== id));
+
+          setModalDetalle((prev) => (prev?.id === id ? null : prev));
+          setModalForm((prev) => (prev?.id === id ? null : prev));
+
+          await cargarModulo();
+        },
+      });
     },
-    [modalDetalle, cargarModulo]
+    [cargarModulo]
   );
 
-  const handleGuardar = useCallback(async (eventoForm) => {
-    setLoading(true);
+  const handleGuardar = useCallback(
+    async (eventoForm) => {
+      const isEdit = Boolean(eventoForm?.id || eventoForm?.backendId);
+      const idReal = eventoForm?.backendId || eventoForm?.id;
 
-    try {
-      if (eventoForm.id || eventoForm.backendId) {
-        const idReal = eventoForm.backendId || eventoForm.id;
-        await actualizarEvento(idReal, eventoForm);
-      } else {
-        await crearEvento(eventoForm);
+      const result = await executeRequest({
+        request: () =>
+          isEdit
+            ? actualizarEvento(idReal, eventoForm)
+            : crearEvento(eventoForm),
+        loadingMessage: isEdit
+          ? "Actualizando evento..."
+          : "Creando evento...",
+        successMessage: isEdit
+          ? "Evento actualizado correctamente"
+          : "Evento creado correctamente",
+        errorMessage: isEdit
+          ? "No se pudo actualizar el evento"
+          : "No se pudo crear el evento",
+        onSuccess: async () => {
+          await cargarModulo();
+          setModalForm(null);
+        },
+      });
+
+      if (!result?.ok) {
+        throw result?.error;
       }
-
-      await cargarModulo();
-      setModalForm(null);
-    } catch (err) {
-      console.error("Error guardando evento:", err);
-      alert(err?.mensaje || "No se pudo guardar el evento.");
-    } finally {
-      setLoading(false);
-    }
-  }, [cargarModulo]);
+    },
+    [cargarModulo]
+  );
 
   const handleExportar = useCallback(async () => {
-    alert("La exportación la hacemos en la siguiente fase con endpoint real.");
+    notify.info("La exportación se conectará cuando el endpoint esté listo.");
   }, []);
 
   return {
@@ -165,3 +192,5 @@ export function useSalud() {
     handleExportar,
   };
 }
+
+export default useSalud;

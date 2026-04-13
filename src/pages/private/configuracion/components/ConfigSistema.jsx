@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getSistema } from "../../../../services/ConfiguracionService";
 import { SISTEMA_ICONOS } from "../configuracion.constants";
+import { notify } from "../../../../services/notify.service";
+import { getErrorMessage } from "../../../../utils/handleRequest";
 
 export function ConfigSistema() {
   const [sistema, setSistema] = useState([]);
@@ -9,9 +11,10 @@ export function ConfigSistema() {
     const cargar = async () => {
       try {
         const data = await getSistema();
-        setSistema(data);
+        setSistema(Array.isArray(data) ? data : []);
       } catch (e) {
         setSistema([]);
+        notify.error(getErrorMessage(e) || "No se pudo cargar el estado del sistema");
       }
     };
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 export default function useTablaPotreros(lista = []) {
   const [busqueda, setBusqueda] = useState("");
@@ -22,25 +22,29 @@ export default function useTablaPotreros(lista = []) {
     let arr = [...lista];
 
     if (busqueda.trim()) {
-      const q = busqueda.toLowerCase();
-      arr = arr.filter(
-        (p) =>
-          p.nombre?.toLowerCase().includes(q) ||
-          p.tipo_pasto?.toLowerCase().includes(q) ||
-          String(p.id).includes(q)
+      const q = busqueda.toLowerCase().trim();
+
+      arr = arr.filter((p) =>
+        String(p?.nombre ?? "").toLowerCase().includes(q) ||
+        String(p?.tipo_pasto ?? "").toLowerCase().includes(q) ||
+        String(p?.estado ?? "").toLowerCase().includes(q) ||
+        String(p?.id ?? "").toLowerCase().includes(q)
       );
     }
 
     if (estadoFiltro !== "Todos") {
-      arr = arr.filter((p) => p.estado === estadoFiltro);
+      arr = arr.filter((p) => p?.estado === estadoFiltro);
     }
 
     arr.sort((a, b) => {
       const aVal = a?.[sortBy] ?? "";
       const bVal = b?.[sortBy] ?? "";
 
-      if (typeof aVal === "number" || typeof bVal === "number") {
-        return sortDir === "asc" ? Number(aVal) - Number(bVal) : Number(bVal) - Number(aVal);
+      const na = Number(aVal);
+      const nb = Number(bVal);
+
+      if (!Number.isNaN(na) && !Number.isNaN(nb) && aVal !== "" && bVal !== "") {
+        return sortDir === "asc" ? na - nb : nb - na;
       }
 
       return sortDir === "asc"
@@ -58,6 +62,12 @@ export default function useTablaPotreros(lista = []) {
     const fin = inicio + porPagina;
     return filtrados.slice(inicio, fin);
   }, [filtrados, pagina, porPagina]);
+
+  useEffect(() => {
+    if (pagina > totalPaginas) {
+      setPagina(totalPaginas);
+    }
+  }, [pagina, totalPaginas]);
 
   const limpiarFiltros = () => {
     setBusqueda("");

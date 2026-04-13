@@ -6,8 +6,13 @@ import {
   updatePerfil,
 } from "../../../../services/ConfiguracionService";
 import { FINCA_FIELDS } from "../configuracion.constants";
+import { notify } from "../../../../services/notify.service";
+import {
+  executeRequest,
+  getErrorMessage,
+} from "../../../../utils/handleRequest";
 
-export function ConfigFinca({ esAdmin, showToast }) {
+export function ConfigFinca({ esAdmin }) {
   const [fincaDraft, setFincaDraft] = useState({
     nombre: "",
     municipio: "",
@@ -23,6 +28,7 @@ export function ConfigFinca({ esAdmin, showToast }) {
     rol: "",
     finca: "",
     contrasena: "",
+    confirmarContrasena: "",
   });
 
   const [perfil, setPerfil] = useState({
@@ -42,11 +48,25 @@ export function ConfigFinca({ esAdmin, showToast }) {
           getPerfilActual(),
         ]);
 
-        setFincaDraft(fincaData);
-        setPerfilDraft({ ...perfilData, contrasena: "" });
-        setPerfil(perfilData);
+        setFincaDraft(
+          fincaData || {
+            nombre: "",
+            municipio: "",
+            departamento: "",
+            propietario: "",
+            prefijo: "",
+          }
+        );
+
+        setPerfilDraft({
+          ...(perfilData || {}),
+          contrasena: "",
+          confirmarContrasena: "",
+        });
+
+        setPerfil(perfilData || {});
       } catch (e) {
-        showToast("❌ No se pudo cargar la configuración");
+        notify.error(getErrorMessage(e) || "No se pudo cargar la configuración");
       }
     };
 
@@ -60,24 +80,69 @@ export function ConfigFinca({ esAdmin, showToast }) {
     setPerfilDraft((prev) => ({ ...prev, [key]: e.target.value }));
 
   const guardarFinca = async () => {
-    try {
-      const actualizada = await updateFinca(fincaDraft);
-      setFincaDraft(actualizada);
-      showToast("✅ Datos de la finca actualizados");
-    } catch (e) {
-      showToast(e?.response?.data?.mensaje || "❌ No se pudo actualizar la finca");
+    if (!fincaDraft?.nombre?.trim()) {
+      notify.error("El nombre de la finca es obligatorio");
+      return;
     }
+
+    await executeRequest({
+      request: () => updateFinca(fincaDraft),
+      loadingMessage: "Actualizando finca...",
+      successMessage: "Datos de la finca actualizados correctamente",
+      errorMessage: "No se pudo actualizar la finca",
+      onSuccess: async (actualizada) => {
+        setFincaDraft(actualizada || fincaDraft);
+      },
+    });
   };
 
   const guardarPerfil = async () => {
-    try {
-      const actualizado = await updatePerfil(perfilDraft);
-      setPerfil(actualizado);
-      setPerfilDraft({ ...actualizado, contrasena: "" });
-      showToast("✅ Perfil actualizado correctamente");
-    } catch (e) {
-      showToast(e?.response?.data?.mensaje || "❌ No se pudo actualizar el perfil");
+    if (!perfilDraft?.nombres?.trim()) {
+      notify.error("Los nombres son obligatorios");
+      return;
     }
+
+    if (!perfilDraft?.correo?.trim()) {
+      notify.error("El correo es obligatorio");
+      return;
+    }
+
+    if (perfilDraft.contrasena || perfilDraft.confirmarContrasena) {
+      if (!perfilDraft.contrasena?.trim()) {
+        notify.error("Debe ingresar la nueva contraseña");
+        return;
+      }
+
+      if (!perfilDraft.confirmarContrasena?.trim()) {
+        notify.error("Debe confirmar la nueva contraseña");
+        return;
+      }
+
+      if (perfilDraft.contrasena !== perfilDraft.confirmarContrasena) {
+        notify.error("Las contraseñas no coinciden");
+        return;
+      }
+
+      if (perfilDraft.contrasena.length < 6) {
+        notify.error("La nueva contraseña debe tener al menos 6 caracteres");
+        return;
+      }
+    }
+
+    await executeRequest({
+      request: () => updatePerfil(perfilDraft),
+      loadingMessage: "Actualizando perfil...",
+      successMessage: "Perfil actualizado correctamente",
+      errorMessage: "No se pudo actualizar el perfil",
+      onSuccess: async (actualizado) => {
+        setPerfil(actualizado || {});
+        setPerfilDraft({
+          ...(actualizado || {}),
+          contrasena: "",
+          confirmarContrasena: "",
+        });
+      },
+    });
   };
 
   return (
@@ -127,7 +192,8 @@ export function ConfigFinca({ esAdmin, showToast }) {
           </div>
           <div>
             <div className="cfg-perfil-name">
-              {perfil.nombreCompleto || `${perfil.nombres} ${perfil.apellidos}`.trim()}
+              {perfil.nombreCompleto ||
+                `${perfil.nombres || ""} ${perfil.apellidos || ""}`.trim()}
             </div>
             <span className="gc-badge gc-badge--success">{perfil.rol}</span>
           </div>
@@ -163,7 +229,11 @@ export function ConfigFinca({ esAdmin, showToast }) {
 
           <div className="cfg-field">
             <label className="gc-label">Finca</label>
-            <input className="gc-input" value={perfilDraft.finca || ""} readOnly />
+            <input
+              className="gc-input"
+              value={perfilDraft.finca || ""}
+              readOnly
+            />
           </div>
 
           <div className="cfg-field">
@@ -174,6 +244,17 @@ export function ConfigFinca({ esAdmin, showToast }) {
               placeholder="••••••••"
               value={perfilDraft.contrasena || ""}
               onChange={setP("contrasena")}
+            />
+          </div>
+
+          <div className="cfg-field">
+            <label className="gc-label">Confirmar Contraseña</label>
+            <input
+              className="gc-input"
+              type="password"
+              placeholder="••••••••"
+              value={perfilDraft.confirmarContrasena || ""}
+              onChange={setP("confirmarContrasena")}
             />
           </div>
         </div>

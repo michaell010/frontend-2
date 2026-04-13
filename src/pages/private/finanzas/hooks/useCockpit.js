@@ -1,6 +1,3 @@
-// ─────────────────────────────────────────────
-// useCockpit.js – Hook centralizado
-// ─────────────────────────────────────────────
 import { useState, useEffect, useCallback } from "react";
 import {
   getKPIs,
@@ -12,14 +9,23 @@ import {
   exportarReporte,
 } from "../../../../services/cockpit.service";
 
+import { notify } from "../../../../services/notify.service";
+import {
+  executeRequest,
+  getErrorMessage,
+} from "../../../../utils/handleRequest";
+
 export function useCockpit() {
   const [kpis, setKpis] = useState([]);
   const [barras, setBarras] = useState([]);
   const [liquidacion, setLiquidacion] = useState([]);
   const [transacciones, setTransacciones] = useState([]);
   const [periodoActivo, setPeriodoActivo] = useState("Semana");
+
   const [loading, setLoading] = useState(false);
   const [loadingBusqueda, setLoadingBusqueda] = useState(false);
+  const [errorCarga, setErrorCarga] = useState("");
+
   const [busqueda, setBusqueda] = useState("");
   const [busquedaDebounce, setBusquedaDebounce] = useState("");
   const [modalDetalle, setModalDetalle] = useState(null);
@@ -39,6 +45,7 @@ export function useCockpit() {
     } catch (error) {
       console.error("Error cargando KPIs:", error);
       setKpis([]);
+      throw error;
     }
   }, []);
 
@@ -49,6 +56,7 @@ export function useCockpit() {
     } catch (error) {
       console.error("Error cargando gráfico:", error);
       setBarras([]);
+      throw error;
     }
   }, []);
 
@@ -59,6 +67,7 @@ export function useCockpit() {
     } catch (error) {
       console.error("Error cargando liquidación:", error);
       setLiquidacion([]);
+      throw error;
     }
   }, []);
 
@@ -73,11 +82,14 @@ export function useCockpit() {
     } catch (error) {
       console.error("Error cargando transacciones:", error);
       setTransacciones([]);
+      throw error;
     }
   }, []);
 
   const cargarInicial = useCallback(async () => {
     setLoading(true);
+    setErrorCarga("");
+
     try {
       await Promise.all([
         cargarKPIs(),
@@ -86,6 +98,9 @@ export function useCockpit() {
       ]);
     } catch (error) {
       console.error("Error general cargando cockpit:", error);
+      const mensaje = getErrorMessage(error);
+      setErrorCarga(mensaje);
+      notify.error(mensaje);
     } finally {
       setLoading(false);
     }
@@ -98,10 +113,12 @@ export function useCockpit() {
   useEffect(() => {
     const cargar = async () => {
       setLoadingBusqueda(true);
+
       try {
         await cargarTransacciones(busquedaDebounce);
       } catch (error) {
         console.error("Error en búsqueda de transacciones:", error);
+        notify.error(getErrorMessage(error));
       } finally {
         setLoadingBusqueda(false);
       }
@@ -121,6 +138,7 @@ export function useCockpit() {
         await cargarBarras(nuevoPeriodo);
       } catch (error) {
         console.error("Error cambiando periodo:", error);
+        notify.error(getErrorMessage(error));
       } finally {
         setLoading(false);
       }
@@ -129,43 +147,61 @@ export function useCockpit() {
   );
 
   const handleExportar = useCallback(async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       await exportarReporte("pdf");
+      notify.success("Reporte exportado correctamente");
     } catch (error) {
       console.warn("No se pudo exportar el reporte:", error);
+      notify.error(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const eliminarTransaccion = useCallback(async (idVisual) => {
-    try {
-      const idReal = String(idVisual)
-        .replace(/^#V-/, "")
-        .replace(/^#LT-/, "");
+  const eliminarTransaccion = useCallback(async (transaccion) => {
+    const idVisual = typeof transaccion === "object" ? transaccion?.id : transaccion;
 
-      await deleteTransaccionService(idReal);
+    const idReal = String(idVisual || "")
+      .replace(/^#V-/, "")
+      .replace(/^#LT-/, "");
 
-      setTransacciones((prev) =>
-        prev.filter(
-          (t) =>
-            String(t.venta_id) !== String(idReal) &&
-            String(t.id) !== String(idVisual)
-        )
-      );
-
-      setModalDetalle((prev) => {
-        if (!prev) return null;
-
-        const mismaVenta = String(prev.venta_id) === String(idReal);
-        const mismoIdVisual = String(prev.id) === String(idVisual);
-
-        return mismaVenta || mismoIdVisual ? null : prev;
-      });
-    } catch (error) {
-      console.error("Error eliminando transacción:", error);
+    if (!idReal) {
+      notify.error("No se encontró el id de la transacción");
+      return;
     }
+
+    await executeRequest({
+      confirm: {
+        title: "Eliminar transacción",
+        text: "Esta acción no se puede deshacer.",
+        confirmText: "Sí, eliminar",
+        cancelText: "Cancelar",
+        icon: "warning",
+      },
+      request: () => deleteTransaccionService(idReal),
+      loadingMessage: "Eliminando transacción...",
+      successMessage: "Transacción eliminada correctamente",
+      errorMessage: "No se pudo eliminar la transacción",
+      onSuccess: async () => {
+        setTransacciones((prev) =>
+          prev.filter(
+            (t) =>
+              String(t?.venta_id) !== String(idReal) &&
+              String(t?.id) !== String(idVisual)
+          )
+        );
+
+        setModalDetalle((prev) => {
+          if (!prev) return null;
+
+          const mismaVenta = String(prev?.venta_id) === String(idReal);
+          const mismoIdVisual = String(prev?.id) === String(idVisual);
+
+          return mismaVenta || mismoIdVisual ? null : prev;
+        });
+      },
+    });
   }, []);
 
   const verDetalleTransaccion = useCallback(async (transaccion) => {
@@ -196,6 +232,7 @@ export function useCockpit() {
       });
     } catch (error) {
       console.error("Error cargando detalle de transacción:", error);
+      notify.error(getErrorMessage(error));
       setModalDetalle(transaccion);
     }
   }, []);
@@ -208,6 +245,7 @@ export function useCockpit() {
     periodoActivo,
     loading,
     loadingBusqueda,
+    errorCarga,
     busqueda,
     setBusqueda,
     cambiarPeriodo,
@@ -219,3 +257,5 @@ export function useCockpit() {
     recargarCockpit: cargarInicial,
   };
 }
+
+export default useCockpit;

@@ -6,21 +6,6 @@ const extraerLista = (res) => (Array.isArray(res?.data) ? res.data : []);
 const nombreCompleto = (item) =>
   `${item?.nombres || ""} ${item?.apellidos || ""}`.trim();
 
-const separarNombreCompleto = (texto = "") => {
-  const limpio = texto.trim().replace(/\s+/g, " ");
-  if (!limpio) return { nombres: "", apellidos: "" };
-
-  const partes = limpio.split(" ");
-  if (partes.length === 1) {
-    return { nombres: partes[0], apellidos: "" };
-  }
-
-  return {
-    nombres: partes.slice(0, -1).join(" "),
-    apellidos: partes.slice(-1).join(" "),
-  };
-};
-
 const adaptarUsuario = (item) => ({
   id: item.id,
   nombre: nombreCompleto(item),
@@ -73,11 +58,9 @@ export async function getUsuarios() {
 }
 
 export async function createUsuario(payload) {
-  const nombresApellidos = separarNombreCompleto(payload.nombre);
-
   const body = {
-    nombres: nombresApellidos.nombres,
-    apellidos: nombresApellidos.apellidos,
+    nombres: payload.nombres,
+    apellidos: payload.apellidos,
     correo: payload.correo,
     rol_id: Number(payload.rol_id),
     finca_id: Number(payload.finca_id),
@@ -94,11 +77,9 @@ export async function createUsuario(payload) {
 }
 
 export async function updateUsuario(id, payload) {
-  const nombresApellidos = separarNombreCompleto(payload.nombre);
-
   const body = {
-    nombres: nombresApellidos.nombres,
-    apellidos: nombresApellidos.apellidos,
+    nombres: payload.nombres,
+    apellidos: payload.apellidos,
     correo: payload.correo,
     rol_id: Number(payload.rol_id),
     finca_id: Number(payload.finca_id),

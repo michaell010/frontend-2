@@ -1,15 +1,13 @@
-// src/pages/private/ganado/hooks/useTabla.js
-
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { PER_PAGE } from "../ganado.constants";
 
 const FILTROS_VACIOS = { estados: [], potreros: [], razas: [] };
 
-export default function useTabla(animales) {
+export default function useTabla(animales = []) {
   const [busqueda, setBusqueda] = useState("");
   const [filtros, setFiltros] = useState(FILTROS_VACIOS);
   const [filtroOpen, setFiltroOpen] = useState(false);
-  const [sortCol, setSortCol] = useState("id");  // ← orden por defecto: ID ascendente
+  const [sortCol, setSortCol] = useState("id");
   const [sortDir, setSortDir] = useState("asc");
   const [pagina, setPagina] = useState(1);
 
@@ -29,8 +27,9 @@ export default function useTabla(animales) {
   };
 
   const handleSort = (col) => {
-    if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else {
+    if (sortCol === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
       setSortCol(col);
       setSortDir("asc");
     }
@@ -42,36 +41,44 @@ export default function useTabla(animales) {
 
       const coincideBusqueda =
         !q ||
-        String(a.codigo || "").toLowerCase().includes(q) ||
-        String(a.nombre || "").toLowerCase().includes(q) ||
-        String(a.raza || "").toLowerCase().includes(q) ||
-        String(a.categoria || "").toLowerCase().includes(q);
+        String(a?.codigo ?? "").toLowerCase().includes(q) ||
+        String(a?.nombre ?? "").toLowerCase().includes(q) ||
+        String(a?.raza ?? "").toLowerCase().includes(q) ||
+        String(a?.categoria ?? "").toLowerCase().includes(q);
 
       const coincideEstado =
-        !filtros.estados.length || filtros.estados.includes(a.estado);
+        !filtros.estados.length || filtros.estados.includes(a?.estado);
 
       const coincidePotrero =
         !filtros.potreros.length ||
-        filtros.potreros.includes(String(a.potrero_id || ""));
+        filtros.potreros.includes(String(a?.potrero_id ?? ""));
 
       const coincideRaza =
-        !filtros.razas.length || filtros.razas.includes(a.raza);
+        !filtros.razas.length || filtros.razas.includes(a?.raza);
 
-      return coincideBusqueda && coincideEstado && coincidePotrero && coincideRaza;
+      return (
+        coincideBusqueda &&
+        coincideEstado &&
+        coincidePotrero &&
+        coincideRaza
+      );
     });
 
     if (sortCol) {
       arr = [...arr].sort((a, b) => {
-        const va = a[sortCol];
-        const vb = b[sortCol];
+        const va = a?.[sortCol];
+        const vb = b?.[sortCol];
 
         const aNum = Number(va);
         const bNum = Number(vb);
+
         const ambosNumeros =
           !Number.isNaN(aNum) &&
           !Number.isNaN(bNum) &&
-          va !== "" && vb !== "" &&
-          va !== null && vb !== null;
+          va !== "" &&
+          vb !== "" &&
+          va !== null &&
+          vb !== null;
 
         if (ambosNumeros) {
           return sortDir === "asc" ? aNum - bNum : bNum - aNum;
@@ -90,6 +97,12 @@ export default function useTabla(animales) {
   const paginados = filtrados.slice((pagina - 1) * PER_PAGE, pagina * PER_PAGE);
   const filtrosActivos =
     filtros.estados.length + filtros.potreros.length + filtros.razas.length;
+
+  useEffect(() => {
+    if (pagina > totalPags) {
+      setPagina(totalPags);
+    }
+  }, [pagina, totalPags]);
 
   return {
     busqueda,

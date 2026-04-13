@@ -1,4 +1,3 @@
-// ListadoInventario.jsx – Página principal Inventario
 import { useInventario } from "./hooks/useInventario";
 import InventarioHero from "./components/InventarioHero";
 import InventarioKPIs from "./components/InventarioKPIs";
@@ -23,6 +22,7 @@ export default function ListadoInventario() {
     filtroEstado,
     setFiltroEstado,
     loading,
+    errorCarga,
     modalDetalle,
     setModalDetalle,
     modalForm,
@@ -30,7 +30,34 @@ export default function ListadoInventario() {
     handleEliminarProducto,
     handleGuardarProducto,
     handleExportar,
+    recargarProductos,
   } = useInventario();
+
+  if (loading && !productos.length) {
+    return (
+      <div className="iv-animate-in">
+        <div className="iv-loading">
+          <div className="iv-loading__spinner" />
+          <p>Cargando inventario...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorCarga && !productos.length) {
+    return (
+      <div className="iv-animate-in">
+        <div className="iv-error-card">
+          <div className="iv-error-card__icon">⚠️</div>
+          <h3>No se pudo cargar el inventario</h3>
+          <p>{errorCarga}</p>
+          <button className="iv-btn iv-btn--primary" onClick={recargarProductos}>
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="iv-animate-in">

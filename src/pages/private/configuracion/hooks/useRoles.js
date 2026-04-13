@@ -1,68 +1,114 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getRoles, updateRol } from "../../../../services/ConfiguracionService";
 
-export function useRoles(showToast) {
+import { notify } from "../../../../services/notify.service";
+import {
+  executeRequest,
+  getErrorMessage,
+} from "../../../../utils/handleRequest";
+
+export function useRoles() {
   const [roles, setRoles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errorCarga, setErrorCarga] = useState("");
+
   const [modalRol, setModalRol] = useState(null);
   const [draft, setDraft] = useState(null);
   const [nuevoPermiso, setNuevoPermiso] = useState("");
 
-  const cargarRoles = async () => {
+  const cargarRoles = useCallback(async () => {
     try {
+      setLoading(true);
+      setErrorCarga("");
+
       const data = await getRoles();
-      setRoles(data);
+      setRoles(Array.isArray(data) ? data : []);
     } catch (e) {
-      showToast("❌ No se pudieron cargar los roles");
+      const mensaje = getErrorMessage(e) || "No se pudieron cargar los roles";
+      setRoles([]);
+      setErrorCarga(mensaje);
+      notify.error(mensaje);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     cargarRoles();
-  }, []);
+  }, [cargarRoles]);
 
   const abrirEditar = (r) => {
-    setDraft({ ...r, permisos: [...r.permisos] });
+    setDraft({ ...r, permisos: [...(r.permisos || [])] });
     setModalRol(r);
   };
 
-  const cerrarModal = () => setModalRol(null);
+  const cerrarModal = () => {
+    setModalRol(null);
+  };
 
   const guardar = async () => {
-    try {
-      if (!draft.nombre.trim()) {
-        showToast("⚠️ El nombre del rol es obligatorio");
-        return;
-      }
+    if (!draft?.nombre?.trim()) {
+      notify.error("El nombre del rol es obligatorio");
+      return;
+    }
 
-      await updateRol(draft.id, draft);
-      await cargarRoles();
-      showToast("✅ Rol actualizado correctamente");
-      cerrarModal();
-    } catch (e) {
-      showToast("❌ No se pudo actualizar el rol");
+    const result = await executeRequest({
+      request: () => updateRol(draft.id, draft),
+      loadingMessage: "Actualizando rol...",
+      successMessage: "Rol actualizado correctamente",
+      errorMessage: "No se pudo actualizar el rol",
+      onSuccess: async () => {
+        await cargarRoles();
+        cerrarModal();
+      },
+    });
+
+    if (!result?.ok) {
+      return;
     }
   };
 
   const agregarPermiso = () => {
-    if (!nuevoPermiso.trim()) return;
-    if (draft.permisos.includes(nuevoPermiso.trim())) {
-      showToast("⚠️ Permiso ya existe");
+    const permiso = nuevoPermiso.trim();
+
+    if (!permiso) return;
+
+    if (draft?.permisos?.includes(permiso)) {
+      notify.error("Ese permiso ya existe");
       return;
     }
-    setDraft((p) => ({ ...p, permisos: [...p.permisos, nuevoPermiso.trim()] }));
+
+    setDraft((p) => ({
+      ...p,
+      permisos: [...(p?.permisos || []), permiso],
+    }));
+
     setNuevoPermiso("");
   };
 
-  const quitarPermiso = (p) => {
+  const quitarPermiso = (permiso) => {
     setDraft((prev) => ({
       ...prev,
-      permisos: prev.permisos.filter((x) => x !== p),
+      permisos: (prev?.permisos || []).filter((x) => x !== permiso),
     }));
   };
 
   return {
-    roles, modalRol, draft, setDraft,
-    nuevoPermiso, setNuevoPermiso,
-    abrirEditar, cerrarModal, guardar, agregarPermiso, quitarPermiso,
+    roles,
+    loading,
+    errorCarga,
+    modalRol,
+    draft,
+    setDraft,
+    nuevoPermiso,
+    setNuevoPermiso,
+    abrirEditar,
+    cerrarModal,
+    guardar,
+    agregarPermiso,
+    quitarPermiso,
+    recargarRoles: cargarRoles,
   };
 }
+
+export default useRoles;

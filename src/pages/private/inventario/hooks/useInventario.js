@@ -7,23 +7,36 @@ import {
   exportarInventario,
 } from "../../../../services/inventario.service";
 
+import { notify } from "../../../../services/notify.service";
+import {
+  executeRequest,
+  getErrorMessage,
+} from "../../../../utils/handleRequest";
+
 export function useInventario() {
   const [productos, setProductos] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [loading, setLoading] = useState(false);
+  const [errorCarga, setErrorCarga] = useState("");
+
   const [modalDetalle, setModalDetalle] = useState(null);
   const [modalForm, setModalForm] = useState(null);
 
   const cargarProductos = useCallback(async () => {
     try {
       setLoading(true);
+      setErrorCarga("");
+
       const data = await getProductos();
       setProductos(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error cargando productos:", error);
       setProductos([]);
+      const mensaje = getErrorMessage(error);
+      setErrorCarga(mensaje);
+      notify.error(mensaje);
     } finally {
       setLoading(false);
     }
@@ -34,76 +47,101 @@ export function useInventario() {
   }, [cargarProductos]);
 
   const productosFiltrados = useMemo(() => {
+    const q = busqueda.toLowerCase().trim();
+
     return productos.filter((p) => {
-      const q = busqueda.toLowerCase();
-
       const matchQ =
-        p.nombre?.toLowerCase().includes(q) ||
-        String(p.id).toLowerCase().includes(q) ||
-        (p.proveedor || "").toLowerCase().includes(q);
+        !q ||
+        String(p?.nombre ?? "").toLowerCase().includes(q) ||
+        String(p?.id ?? "").toLowerCase().includes(q) ||
+        String(p?.proveedor ?? "").toLowerCase().includes(q);
 
-      const matchT = filtroTipo === "todos" || p.tipoKey === filtroTipo;
-      const matchE = filtroEstado === "todos" || p.estadoKey === filtroEstado;
+      const matchT = filtroTipo === "todos" || p?.tipoKey === filtroTipo;
+      const matchE = filtroEstado === "todos" || p?.estadoKey === filtroEstado;
 
       return matchQ && matchT && matchE;
     });
   }, [productos, busqueda, filtroTipo, filtroEstado]);
 
-  const handleEliminarProducto = useCallback(
-    async (id) => {
-      if (!window.confirm("¿Eliminar este producto?")) return;
+  const handleEliminarProducto = useCallback(async (producto) => {
+    const id = typeof producto === "object" ? producto?.id : producto;
 
-      try {
-        setLoading(true);
-        await deleteProducto(id);
-        await cargarProductos();
-      } catch (error) {
-        console.error("Error eliminando producto:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [cargarProductos]
-  );
+    if (!id) {
+      notify.error("No se encontró el id del producto");
+      return;
+    }
 
-  const handleGuardarProducto = useCallback(
-    async (prod) => {
-      try {
-        setLoading(true);
+    await executeRequest({
+      confirm: {
+        title: "Eliminar producto",
+        text: "Esta acción no se puede deshacer.",
+        confirmText: "Sí, eliminar",
+        cancelText: "Cancelar",
+        icon: "warning",
+      },
+      request: () => deleteProducto(id),
+      loadingMessage: "Eliminando producto...",
+      successMessage: "Producto eliminado correctamente",
+      errorMessage: "No se pudo eliminar el producto",
+      onSuccess: async () => {
+        setProductos((prev) => prev.filter((p) => p.id !== id));
+        setModalDetalle((prev) => (prev?.id === id ? null : prev));
+        setModalForm((prev) => (prev?.id === id ? null : prev));
+      },
+    });
+  }, []);
 
-        console.log("Producto recibido desde modal:", prod);
+  const handleGuardarProducto = useCallback(async (prod) => {
+    const isEdit = Boolean(prod?.id);
 
-        if (prod.id) {
-          await updateProducto(prod.id, prod);
+    const result = await executeRequest({
+      request: () =>
+        isEdit ? updateProducto(prod.id, prod) : createProducto(prod),
+      loadingMessage: isEdit
+        ? "Actualizando producto..."
+        : "Creando producto...",
+      successMessage: isEdit
+        ? "Producto actualizado correctamente"
+        : "Producto creado correctamente",
+      errorMessage: isEdit
+        ? "No se pudo actualizar el producto"
+        : "No se pudo crear el producto",
+      onSuccess: async (data) => {
+        if (!data) {
+          throw new Error(
+            isEdit
+              ? "No se recibió el producto actualizado."
+              : "No se recibió el producto creado."
+          );
+        }
+
+        if (isEdit) {
+          setProductos((prev) =>
+            prev.map((item) => (item.id === prod.id ? data : item))
+          );
+
+          setModalDetalle((prev) => (prev?.id === prod.id ? data : prev));
         } else {
-          await createProducto(prod);
+          setProductos((prev) => [data, ...prev]);
         }
 
         setModalForm(null);
-        await cargarProductos();
-      } catch (error) {
-        console.error("Error guardando producto:", error);
-        console.error("Mensaje:", error?.mensaje);
-        console.error("Errores backend:", error?.errores);
+      },
+    });
 
-        alert(
-          error?.errores?.[0]?.mensaje ||
-            error?.mensaje ||
-            "No se pudo guardar el producto"
-        );
-      } finally {
-        setLoading(false);
-      }
-    },
-    [cargarProductos]
-  );
+    if (!result?.ok) {
+      throw result?.error;
+    }
+  }, []);
 
   const handleExportar = useCallback(async () => {
     try {
       setLoading(true);
       await exportarInventario();
+      notify.success("Exportación realizada correctamente");
     } catch (error) {
       console.error("Error exportando inventario:", error);
+      notify.error(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -206,6 +244,7 @@ export function useInventario() {
 
   return {
     productos: productosFiltrados,
+    productosOriginales: productos,
     productosTotal: productosFiltrados.length,
     suministros,
     silos,
@@ -218,6 +257,7 @@ export function useInventario() {
     filtroEstado,
     setFiltroEstado,
     loading,
+    errorCarga,
     modalDetalle,
     setModalDetalle,
     modalForm,
@@ -228,3 +268,5 @@ export function useInventario() {
     recargarProductos: cargarProductos,
   };
 }
+
+export default useInventario;

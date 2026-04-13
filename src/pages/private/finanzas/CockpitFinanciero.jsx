@@ -1,11 +1,10 @@
-// CockpitFinanciero.jsx  ─  Página principal (orchestrador)
-import { useCockpit }              from "./hooks/useCockpit";
-import CockpitHero                 from "./components/CockpitHero";
-import CockpitKPIs                 from "./components/CockpitKPIs";
-import CockpitGrafico              from "./components/CockpitGrafico";
-import CockpitLiquidacion          from "./components/CockpitLiquidacion";
-import CockpitTransacciones        from "./components/CockpitTransacciones";
-import CockpitModalDetalle         from "./components/CockpitModalDetalle";
+import { useCockpit } from "./hooks/useCockpit";
+import CockpitHero from "./components/CockpitHero";
+import CockpitKPIs from "./components/CockpitKPIs";
+import CockpitGrafico from "./components/CockpitGrafico";
+import CockpitLiquidacion from "./components/CockpitLiquidacion";
+import CockpitTransacciones from "./components/CockpitTransacciones";
+import CockpitModalDetalle from "./components/CockpitModalDetalle";
 import "../../../styles/modules/Cockpit.css";
 
 export default function CockpitFinanciero() {
@@ -17,6 +16,7 @@ export default function CockpitFinanciero() {
     periodoActivo,
     loading,
     loadingBusqueda,
+    errorCarga,
     busqueda,
     setBusqueda,
     cambiarPeriodo,
@@ -25,18 +25,41 @@ export default function CockpitFinanciero() {
     modalDetalle,
     setModalDetalle,
     verDetalleTransaccion,
+    recargarCockpit,
   } = useCockpit();
+
+  if (loading && !kpis.length && !barras.length && !liquidacion.length) {
+    return (
+      <div className="ck-animate-in">
+        <div className="ck-loading">
+          <div className="ck-loading__spinner" />
+          <p>Cargando cockpit financiero...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorCarga && !kpis.length && !barras.length && !liquidacion.length) {
+    return (
+      <div className="ck-animate-in">
+        <div className="ck-error-card">
+          <div className="ck-error-card__icon">⚠️</div>
+          <h3>No se pudo cargar el cockpit</h3>
+          <p>{errorCarga}</p>
+          <button className="ck-btn ck-btn--primary" onClick={recargarCockpit}>
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ck-animate-in">
-
-      {/* ── HERO ─────────────────────────────── */}
       <CockpitHero onExportar={handleExportar} loading={loading} />
 
-      {/* ── KPIs ─────────────────────────────── */}
       <CockpitKPIs kpis={kpis} />
 
-      {/* ── GRÁFICO + LIQUIDACIÓN ─────────────── */}
       <div className="ck-mid-grid">
         <CockpitGrafico
           barras={barras}
@@ -50,12 +73,10 @@ export default function CockpitFinanciero() {
           loading={loading}
           onSeleccionar={(item) => {
             console.log("liquidacion", item);
-            // opcional: abrir modal o filtrar
           }}
         />
       </div>
 
-      {/* ── TABLA TRANSACCIONES ───────────────── */}
       <CockpitTransacciones
         transacciones={transacciones}
         busqueda={busqueda}
@@ -66,7 +87,6 @@ export default function CockpitFinanciero() {
         loading={loadingBusqueda}
       />
 
-      {/* ── MODAL DETALLE ─────────────────────── */}
       <CockpitModalDetalle
         transaccion={modalDetalle}
         onClose={() => setModalDetalle(null)}

@@ -1,128 +1,31 @@
-import { useEffect, useMemo, useState } from "react";
 import "../../../styles/modules/Potreros.css";
 
-import {
-  listarPotreros,
-  crearPotrero,
-  actualizarPotrero,
-  eliminarPotrero,
-} from "../../../services/potrero.service";
+import usePotreros from "./hooks/usePotreroToasts";
+import useTablaPotreros from "./hooks/useTablaPotreros";
 
 import PotreroHero from "./components/PotreroHero";
 import PotreroKPIs from "./components/PotreroKPIs";
 import PotreroTabla from "./components/PotreroTabla";
 import PotreroFormModal from "./modals/PotreroFormModal";
-import PotreroDeleteModal from "./modals/PotreroDeleteModal";
-import PotreroToast from "./ui/PotreroToast";
-import usePotreroToasts from "./hooks/usePotreroToasts";
-import useTablaPotreros from "./hooks/useTablaPotreros";
 
 export default function Potreros() {
-  const [potreros, setPotreros] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [guardando, setGuardando] = useState(false);
-  const [eliminando, setEliminando] = useState(false);
-  const [error, setError] = useState("");
+  const {
+    potreros,
+    loading,
+    guardando,
+    error,
+    modalFormOpen,
+    potreroActivo,
+    modoForm,
+    abrirCrear,
+    abrirEditar,
+    cerrarForm,
+    handleGuardar,
+    handleEliminar,
+    recargarPotreros,
+  } = usePotreros();
 
-  const [modalFormOpen, setModalFormOpen] = useState(false);
-  const [modalDeleteOpen, setModalDeleteOpen] = useState(false);
-  const [potreroActivo, setPotreroActivo] = useState(null);
-  const [modoForm, setModoForm] = useState("crear");
-
-  const { toasts, pushToast, removeToast } = usePotreroToasts();
   const tabla = useTablaPotreros(potreros);
-
-  const cargarPotreros = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const data = await listarPotreros();
-      setPotreros(data);
-    } catch (err) {
-      setError(err?.mensaje || "No se pudo cargar la información.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    cargarPotreros();
-  }, []);
-
-  const abrirCrear = () => {
-    setModoForm("crear");
-    setPotreroActivo(null);
-    setModalFormOpen(true);
-  };
-
-  const abrirEditar = (potrero) => {
-    setModoForm("editar");
-    setPotreroActivo(potrero);
-    setModalFormOpen(true);
-  };
-
-  const abrirEliminar = (potrero) => {
-    setPotreroActivo(potrero);
-    setModalDeleteOpen(true);
-  };
-
-  const cerrarForm = () => {
-    if (guardando) return;
-    setModalFormOpen(false);
-    setPotreroActivo(null);
-  };
-
-  const cerrarDelete = () => {
-    if (eliminando) return;
-    setModalDeleteOpen(false);
-    setPotreroActivo(null);
-  };
-
-  const handleGuardar = async (form) => {
-    try {
-      setGuardando(true);
-
-      if (modoForm === "editar" && potreroActivo?.id) {
-        const actualizado = await actualizarPotrero(potreroActivo.id, form);
-
-        setPotreros((prev) =>
-          prev.map((item) => (item.id === potreroActivo.id ? actualizado : item))
-        );
-
-        pushToast("Potrero actualizado correctamente.");
-      } else {
-        const creado = await crearPotrero(form);
-        setPotreros((prev) => [creado, ...prev]);
-        pushToast("Potrero creado correctamente.");
-      }
-
-      setModalFormOpen(false);
-      setPotreroActivo(null);
-    } catch (err) {
-      pushToast(err?.mensaje || "No se pudo guardar el potrero.", "error");
-    } finally {
-      setGuardando(false);
-    }
-  };
-
-  const handleEliminar = async () => {
-    try {
-      if (!potreroActivo?.id) return;
-
-      setEliminando(true);
-      await eliminarPotrero(potreroActivo.id);
-
-      setPotreros((prev) => prev.filter((p) => p.id !== potreroActivo.id));
-      pushToast("Potrero eliminado correctamente.");
-
-      setModalDeleteOpen(false);
-      setPotreroActivo(null);
-    } catch (err) {
-      pushToast(err?.mensaje || "No se pudo eliminar el potrero.", "error");
-    } finally {
-      setEliminando(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -142,7 +45,7 @@ export default function Potreros() {
           <div className="pt-error-card__icon">⚠️</div>
           <h3>No se pudo cargar el módulo</h3>
           <p>{error}</p>
-          <button className="pt-btn pt-btn--primary" onClick={cargarPotreros}>
+          <button className="pt-btn pt-btn--primary" onClick={recargarPotreros}>
             Reintentar
           </button>
         </div>
@@ -161,64 +64,68 @@ export default function Potreros() {
       <PotreroKPIs potreros={potreros} />
 
       <div className="pt-tabla-section">
-<div className="pt-toolbar">
+        <div className="pt-toolbar">
+          <div className="pt-toolbar__left">
+            <h3 className="pt-toolbar__title">Registro de Potreros</h3>
+            {totalFiltrosActivos > 0 && (
+              <div className="pt-toolbar__filters-active">
+                {totalFiltrosActivos} filtro
+                {totalFiltrosActivos > 1 ? "s" : ""} activo
+                {totalFiltrosActivos > 1 ? "s" : ""}
+                <button
+                  className="pt-toolbar__clear"
+                  onClick={tabla.limpiarFiltros}
+                >
+                  × Limpiar
+                </button>
+              </div>
+            )}
+          </div>
 
-  {/* IZQUIERDA → TÍTULO */}
-  <div className="pt-toolbar__left">
-    <h3 className="pt-toolbar__title">Registro de Potreros</h3>
-  </div>
+          <div className="pt-toolbar__right">
+            <div className="pt-search">
+              <span className="pt-search__icon">🔎</span>
+              <input
+                value={tabla.busqueda}
+                onChange={(e) => {
+                  tabla.setBusqueda(e.target.value);
+                  tabla.setPagina(1);
+                }}
+                placeholder="Buscar por nombre, id o tipo..."
+              />
+              {tabla.busqueda && (
+                <button
+                  className="pt-search__clear"
+                  onClick={() => {
+                    tabla.setBusqueda("");
+                    tabla.setPagina(1);
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
 
-  {/* DERECHA → CONTROLES */}
-  <div className="pt-toolbar__right">
+            <select
+              className="pt-select"
+              value={tabla.estadoFiltro}
+              onChange={(e) => {
+                tabla.setEstadoFiltro(e.target.value);
+                tabla.setPagina(1);
+              }}
+            >
+              <option value="Todos">Todos</option>
+              <option value="Disponible">Disponible</option>
+              <option value="Ocupado">Ocupado</option>
+              <option value="Mantenimiento">Mantenimiento</option>
+              <option value="Descanso">Descanso</option>
+            </select>
 
-    <div className="pt-search">
-      <span className="pt-search__icon">🔎</span>
-      <input
-        value={tabla.busqueda}
-        onChange={(e) => {
-          tabla.setBusqueda(e.target.value);
-          tabla.setPagina(1);
-        }}
-        placeholder="Buscar por nombre, id o tipo..."
-      />
-      {tabla.busqueda && (
-        <button
-          className="pt-search__clear"
-          onClick={() => {
-            tabla.setBusqueda("");
-            tabla.setPagina(1);
-          }}
-        >
-          ✕
-        </button>
-      )}
-    </div>
-
-    <select
-      className="pt-select"
-      value={tabla.estadoFiltro}
-      onChange={(e) => {
-        tabla.setEstadoFiltro(e.target.value);
-        tabla.setPagina(1);
-      }}
-    >
-      <option value="Todos">Todos</option>
-      <option value="Disponible">Disponible</option>
-      <option value="Ocupado">Ocupado</option>
-      <option value="Mantenimiento">Mantenimiento</option>
-      <option value="Descanso">Descanso</option>
-    </select>
-
-    <button
-      className="pt-btn pt-btn--primary"
-      onClick={abrirCrear}
-    >
-      ➕ Agregar
-    </button>
-
-  </div>
-
-</div>
+            <button className="pt-btn pt-btn--primary" onClick={abrirCrear}>
+              ➕ Agregar
+            </button>
+          </div>
+        </div>
 
         <PotreroTabla
           vista="tabla"
@@ -231,7 +138,7 @@ export default function Potreros() {
           sortDir={tabla.sortDir}
           onSort={tabla.toggleSort}
           onEditar={abrirEditar}
-          onEliminar={abrirEliminar}
+          onEliminar={handleEliminar}
         />
       </div>
 
@@ -243,16 +150,6 @@ export default function Potreros() {
         onSubmit={handleGuardar}
         loading={guardando}
       />
-
-      <PotreroDeleteModal
-        open={modalDeleteOpen}
-        potrero={potreroActivo}
-        onClose={cerrarDelete}
-        onConfirm={handleEliminar}
-        loading={eliminando}
-      />
-
-      <PotreroToast toasts={toasts} onClose={removeToast} />
     </div>
   );
 }

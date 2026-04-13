@@ -1,48 +1,51 @@
-// src/pages/private/ganado/components/GanadoTabla.jsx
-
-import Badge        from "../ui/Badge";
+import Badge from "../ui/Badge";
 import AccionesMenu from "../ui/AccionesMenu";
+import defaultCow from "../../../../assets/default-cow.png";
 
 const COLS = [
-  { key: "foto",       label: "Foto",       sortable: false },
-  { key: "codigo",     label: "Código",     sortable: true  },
-  { key: "nombre",     label: "Nombre",     sortable: true  },
-  { key: "categoria",  label: "Categoría",  sortable: true  },
-  { key: "raza",       label: "Raza",       sortable: true  },
-  { key: "sexo",       label: "Sexo",       sortable: true  },
-  { key: "peso_actual",label: "Peso (kg)",  sortable: true  },
-  { key: "potrero_id", label: "Potrero ID", sortable: true  },
-  { key: "estado",     label: "Estado",     sortable: false },
+  { key: "foto", label: "Foto" },
+  { key: "codigo", label: "Código" },
+  { key: "nombre", label: "Nombre" },
+  { key: "categoria", label: "Categoría" },
+  { key: "raza", label: "Raza" },
+  { key: "sexo", label: "Sexo" },
+  { key: "peso_actual", label: "Peso (kg)" },
+  { key: "potrero_id", label: "Potrero ID" },
+  { key: "estado", label: "Estado" },
 ];
 
-const FALLBACK = "/images/ganado-fallback.png";
+const getFoto = (a) => {
+  if (!a?.foto_url) return defaultCow;
 
-function FotoCell({ src, alt }) {
-  return (
-    <img
-      src={src && src !== "null" && src !== "undefined" && src.trim() !== "" ? src : FALLBACK}
-      alt={alt}
-      className="gc-table__thumb"
-      onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = FALLBACK; }}
-    />
-  );
-}
+  if (a.foto_url.startsWith("http")) return a.foto_url;
 
-export default function GanadoTabla({ filas, sortCol, sortDir, onSort, onVerDetalle, onEditar, onEliminar }) {
+  const base = import.meta.env.VITE_API_BASE || "http://localhost:3000";
+  return `${base}${a.foto_url}`;
+};
+
+export default function GanadoTabla({
+  filas,
+  sortCol,
+  sortDir,
+  onSort,
+  onVerDetalle,
+  onEditar,
+  onEliminar,
+}) {
   return (
     <div className="gc-table-wrap">
       <table className="gc-table">
         <thead>
           <tr>
-            {COLS.map(c => (
+            {COLS.map((c) => (
               <th
                 key={c.key}
                 className={sortCol === c.key ? "sorted" : ""}
-                onClick={() => c.sortable && onSort(c.key)}
-                style={!c.sortable ? { cursor: "default" } : {}}
+                onClick={c.key !== "foto" ? () => onSort(c.key) : undefined}
+                style={c.key === "foto" ? { cursor: "default" } : {}}
               >
                 {c.label}
-                {c.sortable && (
+                {c.key !== "foto" && (
                   <span className="sort-ico">
                     {sortCol === c.key ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
                   </span>
@@ -60,37 +63,48 @@ export default function GanadoTabla({ filas, sortCol, sortDir, onSort, onVerDeta
                 😔 No se encontraron animales con los filtros actuales
               </td>
             </tr>
-          ) : filas.map(a => (
-            <tr key={a.id} onClick={() => onVerDetalle(a)}>
+          ) : (
+            filas.map((a) => (
+              <tr key={a.id} onClick={() => onVerDetalle(a)}>
+                <td>
+                  <img
+                    src={getFoto(a)}
+                    alt={a.nombre || a.codigo}
+                    style={{
+                      width: "46px",
+                      height: "46px",
+                      objectFit: "cover",
+                      borderRadius: "12px",
+                      border: "1px solid #e5e7eb",
+                      background: "#f8fafc",
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.src = defaultCow;
+                    }}
+                  />
+                </td>
 
-              {/* Foto */}
-              <td><FotoCell src={a.foto} alt={a.nombre || a.codigo || "Animal"} /></td>
-
-              {/* Datos */}
-              <td className="cell-id">{a.codigo || a.id}</td>
-              <td className="cell-nombre">{a.nombre || "Sin nombre"}</td>
-              <td>{a.categoria || "-"}</td>
-              <td>{a.raza     || "-"}</td>
-              <td>{a.sexo     || "-"}</td>
-              <td className="cell-num">{a.peso_actual ?? a.peso ?? "-"}</td>
-              <td>{a.potrero_id || "-"}</td>
-
-              {/* Estado → Badge recibe el animal completo para resolver prioridad */}
-              <td>
-                <Badge animal={a} />
-              </td>
-
-              {/* Acciones */}
-              <td onClick={e => e.stopPropagation()}>
-                <AccionesMenu
-                  animal={a}
-                  onVer={onVerDetalle}
-                  onEditar={onEditar}
-                  onEliminar={onEliminar}
-                />
-              </td>
-            </tr>
-          ))}
+                <td className="cell-id">{a.codigo || a.id}</td>
+                <td className="cell-nombre">{a.nombre || "Sin nombre"}</td>
+                <td>{a.categoria || "-"}</td>
+                <td>{a.raza || "-"}</td>
+                <td>{a.sexo || "-"}</td>
+                <td className="cell-num">{a.peso_actual ?? a.peso ?? "-"}</td>
+                <td>{a.potrero_id || "-"}</td>
+                <td>
+                  <Badge estado={a.estado} />
+                </td>
+                <td onClick={(e) => e.stopPropagation()}>
+                  <AccionesMenu
+                    animal={a}
+                    onVer={onVerDetalle}
+                    onEditar={onEditar}
+                    onEliminar={onEliminar}
+                  />
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>

@@ -1,5 +1,4 @@
-// ─── modals/ModalUsuario.jsx ─────────────────────────────────────────────────
-import { ModalBase }   from "../shared/ModalBase";
+import { ModalBase } from "../shared/ModalBase";
 import { UsuarioForm } from "../shared/UsuarioForm";
 
 export function ModalUsuario({ modalUsuario, draft, setDraft, onGuardar, onClose }) {
@@ -7,10 +6,18 @@ export function ModalUsuario({ modalUsuario, draft, setDraft, onGuardar, onClose
 
   return (
     <ModalBase
-      title={esNuevo ? "Nuevo Usuario" : `Editar: ${modalUsuario.nombre}`}
+      title={
+        esNuevo
+          ? "Nuevo Usuario"
+          : `Editar: ${(draft?.nombres || "")} ${(draft?.apellidos || "")}`.trim()
+      }
       onClose={onClose}
     >
-      <UsuarioForm draft={draft} setDraft={setDraft} />
+      <UsuarioForm
+        draft={draft}
+        setDraft={setDraft}
+        esNuevo={esNuevo}
+      />
 
       <div className="cfg-modal__footer">
         <button className="gc-btn gc-btn--ghost" onClick={onClose}>

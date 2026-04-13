@@ -1,5 +1,4 @@
-// useDashboard.js
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { getUsuarioActual } from "../../../../services/AuthService";
 import {
   MODULOS_DATA,
@@ -14,6 +13,9 @@ import {
   icoVerificacion,
   icoReproduccion,
 } from "../../../../services/dashboard.service";
+
+import { notify } from "../../../../services/notify.service";
+import { getErrorMessage } from "../../../../utils/handleRequest";
 
 const formatearMoneda = (valor) =>
   new Intl.NumberFormat("es-CO", {
@@ -33,103 +35,93 @@ export function useDashboard() {
   const fecha = getFechaFormateada();
 
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
 
   const [kpis, setKpis] = useState([]);
   const [alertas, setAlertas] = useState([]);
 
-  useEffect(() => {
-    let activo = true;
+  const cargarDashboard = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-    const cargarDashboard = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+      const [resumen, alertasBackend] = await Promise.all([
+        obtenerResumenDashboard(),
+        obtenerAlertasDashboard(),
+      ]);
 
-        const [resumen, alertasBackend] = await Promise.all([
-          obtenerResumenDashboard(),
-          obtenerAlertasDashboard(),
-        ]);
+      const kpisBackend = resumen?.kpis || {};
 
-        if (!activo) return;
+      const kpisAdaptados = [
+        {
+          label: kpisBackend?.ganadoTotal?.label || "Ganado Total",
+          value: kpisBackend?.ganadoTotal?.value ?? 0,
+          sub: kpisBackend?.ganadoTotal?.sub || "Sin información",
+          trend: kpisBackend?.ganadoTotal?.trend || "up",
+          barPct: kpisBackend?.ganadoTotal?.barPct ?? 0,
+          icon: icoCow,
+        },
+        {
+          label: kpisBackend?.alertasActivas?.label || "Alertas Activas",
+          value: kpisBackend?.alertasActivas?.value ?? 0,
+          sub: kpisBackend?.alertasActivas?.sub || "Sin información",
+          trend: kpisBackend?.alertasActivas?.trend || "down",
+          barPct: kpisBackend?.alertasActivas?.barPct ?? 0,
+          icon: icoAlerta,
+        },
+        {
+          label: kpisBackend?.ingresosMes?.label || "Ingresos del mes",
+          value: formatearMoneda(kpisBackend?.ingresosMes?.value ?? 0),
+          sub: kpisBackend?.ingresosMes?.sub || "Sin información",
+          trend: kpisBackend?.ingresosMes?.trend || "up",
+          barPct: kpisBackend?.ingresosMes?.barPct ?? 0,
+          icon: icoFinanzas,
+        },
+        {
+          label: kpisBackend?.tasaVacunacion?.label || "Tasa Vacunación",
+          value: `${kpisBackend?.tasaVacunacion?.value ?? 0}%`,
+          sub: kpisBackend?.tasaVacunacion?.sub || "Sin información",
+          trend: kpisBackend?.tasaVacunacion?.trend || "up",
+          barPct: kpisBackend?.tasaVacunacion?.barPct ?? 0,
+          icon: icoSalud,
+        },
+      ];
 
-        const kpisBackend = resumen?.kpis || {};
+      const alertasAdaptadas = (alertasBackend || []).map((a) => {
+        let icono = icoAlerta;
 
-        const kpisAdaptados = [
-          {
-            label: kpisBackend?.ganadoTotal?.label || "Ganado Total",
-            value: kpisBackend?.ganadoTotal?.value ?? 0,
-            sub: kpisBackend?.ganadoTotal?.sub || "Sin información",
-            trend: kpisBackend?.ganadoTotal?.trend || "up",
-            barPct: kpisBackend?.ganadoTotal?.barPct ?? 0,
-            icon: icoCow,
-          },
-          {
-            label: kpisBackend?.alertasActivas?.label || "Alertas Activas",
-            value: kpisBackend?.alertasActivas?.value ?? 0,
-            sub: kpisBackend?.alertasActivas?.sub || "Sin información",
-            trend: kpisBackend?.alertasActivas?.trend || "down",
-            barPct: kpisBackend?.alertasActivas?.barPct ?? 0,
-            icon: icoAlerta,
-          },
-          {
-            label: kpisBackend?.ingresosMes?.label || "Ingresos del mes",
-            value: formatearMoneda(kpisBackend?.ingresosMes?.value ?? 0),
-            sub: kpisBackend?.ingresosMes?.sub || "Sin información",
-            trend: kpisBackend?.ingresosMes?.trend || "up",
-            barPct: kpisBackend?.ingresosMes?.barPct ?? 0,
-            icon: icoFinanzas,
-          },
-          {
-            label: kpisBackend?.tasaVacunacion?.label || "Tasa Vacunación",
-            value: `${kpisBackend?.tasaVacunacion?.value ?? 0}%`,
-            sub: kpisBackend?.tasaVacunacion?.sub || "Sin información",
-            trend: kpisBackend?.tasaVacunacion?.trend || "up",
-            barPct: kpisBackend?.tasaVacunacion?.barPct ?? 0,
-            icon: icoSalud,
-          },
-        ];
-
-        const alertasAdaptadas = (alertasBackend || []).map((a) => {
-          let icono = icoAlerta;
-
-          if (a.tipo === "ok") {
-            icono = icoVerificacion;
-          } else if (a.titulo?.toLowerCase().includes("parto")) {
-            icono = icoReproduccion;
-          } else if (a.titulo?.toLowerCase().includes("vacun")) {
-            icono = icoSalud;
-          }
-
-          return {
-            ...a,
-            ico: icono,
-          };
-        });
-
-        setKpis(kpisAdaptados);
-        setAlertas(alertasAdaptadas);
-      } catch (err) {
-        console.error("Error cargando dashboard:", err);
-
-        if (!activo) return;
-
-        setError(err);
-        setKpis([]);
-        setAlertas([]);
-      } finally {
-        if (activo) {
-          setLoading(false);
+        if (a?.tipo === "ok") {
+          icono = icoVerificacion;
+        } else if (a?.titulo?.toLowerCase().includes("parto")) {
+          icono = icoReproduccion;
+        } else if (a?.titulo?.toLowerCase().includes("vacun")) {
+          icono = icoSalud;
         }
-      }
-    };
 
-    cargarDashboard();
+        return {
+          ...a,
+          ico: icono,
+        };
+      });
 
-    return () => {
-      activo = false;
-    };
+      setKpis(kpisAdaptados);
+      setAlertas(alertasAdaptadas);
+    } catch (err) {
+      console.error("Error cargando dashboard:", err);
+
+      const mensaje = getErrorMessage(err) || "No se pudo cargar el dashboard.";
+      setError(mensaje);
+      setKpis([]);
+      setAlertas([]);
+      notify.error(mensaje);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    cargarDashboard();
+  }, [cargarDashboard]);
 
   const alertasActivas = useMemo(() => {
     return alertas.filter((a) => a.tipo !== "ok").length;
@@ -148,5 +140,8 @@ export function useDashboard() {
     alertasActivas,
     loading,
     error,
+    recargarDashboard: cargarDashboard,
   };
 }
+
+export default useDashboard;
