@@ -13,7 +13,7 @@ export const TIPOS_ALIMENTO = [
 
 export const FRECUENCIAS = [
   "Diaria",
-  "Dos veces al día",
+  "Dos_veces_al_dia",
   "Semanal",
   "Quincenal",
   "Mensual",
@@ -42,8 +42,8 @@ export function calcularKPIsAlimentacion(registros) {
   const conteoFrecuencia = {};
 
   registros.forEach(r => {
-    const t = r.tipo_alimento || "Otro";
-    conteoAlimentos[t] = (conteoAlimentos[t] || 0) + 1;
+    const nombre = r.nombre_alimento || r.producto?.nombre || "Sin nombre";
+    conteoAlimentos[nombre] = (conteoAlimentos[nombre] || 0) + 1;
 
     const f = r.frecuencia || "—";
     conteoFrecuencia[f] = (conteoFrecuencia[f] || 0) + 1;

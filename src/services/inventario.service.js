@@ -41,21 +41,18 @@ const request = async (endpoint, options = {}) => {
   return data;
 };
 
-const calcularEstadoInventario = (cantidadActual, cantidadMin) => {
+const calcularEstadoInventario = (cantidadActual) => {
   const actual = Number(cantidadActual || 0);
-  const minimo = Number(cantidadMin || 0);
 
   if (actual <= 0) {
     return { estadoKey: "agotado", estado: "Agotado" };
   }
 
-  const porcentaje = minimo > 0 ? (actual / minimo) * 100 : 100;
-
-  if (porcentaje <= 25) {
+  if (actual < 20) {
     return { estadoKey: "critico", estado: "Crítico" };
   }
 
-  if (porcentaje < 50) {
+  if (actual < 50) {
     return { estadoKey: "stock_bajo", estado: "Stock Bajo" };
   }
 
@@ -82,14 +79,10 @@ const iconoPorTipo = (tipo) => {
 const adaptarProductoDesdeBackend = (item) => {
   const cantidadActual = Number(item?.cantidad_actual || 0);
   const cantidadMin = Number(item?.cantidad_min || 0);
-  const estadoCalc = calcularEstadoInventario(cantidadActual, cantidadMin);
+  const estadoCalc = calcularEstadoInventario(cantidadActual);
 
-  let stock = 0;
-  if (cantidadMin > 0) {
-    stock = Math.min(Math.round((cantidadActual / cantidadMin) * 100), 100);
-  } else {
-    stock = cantidadActual > 0 ? 100 : 0;
-  }
+  // porcentaje directo según la cantidad actual
+  const stock = Math.max(0, Math.min(Math.round(cantidadActual), 100));
 
   return {
     id: item?.id,
@@ -129,7 +122,7 @@ const adaptarProductoDesdeBackend = (item) => {
 };
 
 const adaptarPayloadProducto = (data) => {
-  const payload = {
+  return {
     nombre: data?.nombre?.trim() || "",
     tipo: data?.tipo || "Alimento",
     categoria: data?.categoria?.trim() || null,
@@ -148,79 +141,96 @@ const adaptarPayloadProducto = (data) => {
     fecha_registro: data?.fecha_registro || null,
     activo: data?.activo ?? true,
   };
-
-  return payload;
 };
 
-export const getProductos = async () => {
-  const res = await request("/productos");
-  const lista = res?.mensaje?.data || res?.data || [];
-  return lista.map(adaptarProductoDesdeBackend);
+export const inventarioService = {
+  async getProductos() {
+    const res = await request("/productos", { method: "GET" });
+    const lista = res?.mensaje?.data ?? res?.data ?? res ?? [];
+    return Array.isArray(lista) ? lista.map(adaptarProductoDesdeBackend) : [];
+  },
+
+  async getProductoById(id) {
+    const res = await request(`/productos/${id}`, { method: "GET" });
+    const item = res?.mensaje?.data ?? res?.data ?? res ?? null;
+    return item ? adaptarProductoDesdeBackend(item) : null;
+  },
+
+  async createProducto(data) {
+    const payload = adaptarPayloadProducto(data);
+    console.log("Payload createProducto:", payload);
+
+    const res = await request("/productos", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    const item = res?.mensaje?.data ?? res?.data ?? res ?? null;
+    return item ? adaptarProductoDesdeBackend(item) : null;
+  },
+
+  async updateProducto(id, data) {
+    const payload = adaptarPayloadProducto(data);
+    console.log("Payload updateProducto:", payload);
+
+    const res = await request(`/productos/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+
+    const item = res?.mensaje?.data ?? res?.data ?? res ?? null;
+    return item ? adaptarProductoDesdeBackend(item) : null;
+  },
+
+  async deleteProducto(id) {
+    return await request(`/productos/${id}`, {
+      method: "DELETE",
+    });
+  },
+
+  async crearMovimientoProducto(data) {
+    return await request("/productos/movimientos", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  async exportarInventario() {
+    const productos = await this.getProductos();
+    console.table(productos);
+    return productos;
+  },
 };
 
-export const getProductoById = async (id) => {
-  const res = await request(`/productos/${id}`);
-  const item = res?.mensaje?.data || res?.data || null;
-  return item ? adaptarProductoDesdeBackend(item) : null;
-};
-
-export const createProducto = async (data) => {
-  const payload = adaptarPayloadProducto(data);
-  console.log("Payload createProducto:", payload);
-
-  const res = await request("/productos", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-
-  const item = res?.mensaje?.data || res?.data || null;
-  return item ? adaptarProductoDesdeBackend(item) : null;
-};
-
-export const updateProducto = async (id, data) => {
-  const payload = adaptarPayloadProducto(data);
-  console.log("Payload updateProducto:", payload);
-
-  const res = await request(`/productos/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(payload),
-  });
-
-  const item = res?.mensaje?.data || res?.data || null;
-  return item ? adaptarProductoDesdeBackend(item) : null;
-};
-
-export const deleteProducto = async (id) => {
-  return await request(`/productos/${id}`, {
-    method: "DELETE",
-  });
-};
-
-export const crearMovimientoProducto = async (data) => {
-  return await request("/productos/movimientos", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-};
-
-export const exportarInventario = async () => {
-  const productos = await getProductos();
-  console.table(productos);
-  return productos;
-};
+export const getProductos = () => inventarioService.getProductos();
+export const getProductoById = (id) => inventarioService.getProductoById(id);
+export const createProducto = (data) => inventarioService.createProducto(data);
+export const updateProducto = (id, data) => inventarioService.updateProducto(id, data);
+export const deleteProducto = (id) => inventarioService.deleteProducto(id);
+export const crearMovimientoProducto = (data) => inventarioService.crearMovimientoProducto(data);
+export const exportarInventario = () => inventarioService.exportarInventario();
 
 export const ESTADO_META_INV = {
-  en_stock:   { color: "#22c55e", label: "En Stock" },
+  en_stock: { color: "#22c55e", label: "En Stock" },
   stock_bajo: { color: "#f59e0b", label: "Stock Bajo" },
-  critico:    { color: "#ef4444", label: "Crítico" },
-  agotado:    { color: "#6b7280", label: "Agotado" },
+  critico: { color: "#ef4444", label: "Crítico" },
+  agotado: { color: "#6b7280", label: "Agotado" },
 };
 
 export const TIPO_META = {
-  alimento:    { color: "#16a34a", ico: "🌾" },
+  alimento: { color: "#16a34a", ico: "🌾" },
   medicamento: { color: "#3b82f6", ico: "💊" },
-  insumo:      { color: "#8b5cf6", ico: "🔩" },
+  insumo: { color: "#8b5cf6", ico: "🔩" },
   herramienta: { color: "#f59e0b", ico: "🛠️" },
-  equipo:      { color: "#64748b", ico: "⚙️" },
-  otro:        { color: "#6b7280", ico: "📦" },
+  equipo: { color: "#64748b", ico: "⚙️" },
+  otro: { color: "#6b7280", ico: "📦" },
+};
+
+export const analizarInventarioIA = async () => {
+  const res = await request("/inventario/analisis-ia", {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+
+  return res?.mensaje?.data || res?.data || null;
 };

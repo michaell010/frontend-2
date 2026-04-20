@@ -1,12 +1,7 @@
-// src/pages/private/alimentacion/components/AlimentacionKPIs.jsx
-
-import { calcularKPIsAlimentacion, TIPO_ALIMENTO_STYLES } from "../alimentacion.constants";
-import { formatFrecuencia } from "../alimentacion.constants";
+import { calcularKPIsAlimentacion, formatFrecuencia } from "../alimentacion.constants";
 
 export default function AlimentacionKPIs({ registros }) {
   const { total, animalesUnicos, alimentoTop, frecuenciaTop } = calcularKPIsAlimentacion(registros);
-
-  const iconoTop = TIPO_ALIMENTO_STYLES[alimentoTop]?.icono ?? "📦";
 
   const items = [
     {
@@ -25,8 +20,8 @@ export default function AlimentacionKPIs({ registros }) {
     },
     {
       label: "Alimento Principal",
-      val: alimentoTop === "—" ? "—" : alimentoTop.replace("_", " "),
-      ico: iconoTop,
+      val: alimentoTop,
+      ico: "📦",
       sub: alimentoTop === "—" ? "Sin registros aún" : "El más suministrado",
       pct: alimentoTop === "—" ? 0 : 75,
     },

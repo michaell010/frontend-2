@@ -1,6 +1,4 @@
-// src/pages/private/alimentacion/shared/RacionForm.jsx
-
-import { TIPOS_ALIMENTO, FRECUENCIAS, TIPOS_ANIMAL } from "../alimentacion.constants";
+import { TIPOS_ANIMAL } from "../alimentacion.constants";
 
 function Field({ label, required, error, children }) {
   return (
@@ -21,16 +19,22 @@ export default function RacionForm({
   onChange,
   esEdicion = false,
   animales = [],
+  productos = [],
 }) {
   const s = (k, v) => onChange(k, v);
 
   const animalesFiltrados = form.tipo_animal
-    ? animales.filter(a =>
-        a.tipo === form.tipo_animal ||
-        a.tipo_animal === form.tipo_animal ||
-        a.categoria === form.tipo_animal
+    ? animales.filter(
+        (a) =>
+          a.tipo === form.tipo_animal ||
+          a.tipo_animal === form.tipo_animal ||
+          a.categoria === form.tipo_animal
       )
     : animales;
+
+  const productosAlimento = productos.filter(
+    (p) => String(p.tipo || "").toLowerCase() === "alimento"
+  );
 
   return (
     <div className="al-form-grid">
@@ -40,15 +44,17 @@ export default function RacionForm({
         <select
           className={`al-form-select${errors.tipo_animal ? " error" : ""}`}
           value={form.tipo_animal || ""}
-          onChange={e => {
+          onChange={(e) => {
             s("tipo_animal", e.target.value);
             s("animal_id", "");
           }}
           disabled={esEdicion}
         >
           <option value="">Seleccionar tipo…</option>
-          {TIPOS_ANIMAL.map(t => (
-            <option key={t} value={t}>{t}</option>
+          {TIPOS_ANIMAL.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
           ))}
         </select>
       </Field>
@@ -57,13 +63,13 @@ export default function RacionForm({
         <select
           className={`al-form-select${errors.animal_id ? " error" : ""}`}
           value={form.animal_id || ""}
-          onChange={e => s("animal_id", e.target.value)}
+          onChange={(e) => s("animal_id", e.target.value)}
           disabled={esEdicion || !form.tipo_animal}
         >
           <option value="">
             {!form.tipo_animal ? "Primero selecciona el tipo…" : "Seleccionar animal…"}
           </option>
-          {animalesFiltrados.map(a => (
+          {animalesFiltrados.map((a) => (
             <option key={a.id} value={a.id}>
               {a.codigo} - {a.nombre || "Sin nombre"} - {a.raza || "Sin raza"}
             </option>
@@ -73,24 +79,22 @@ export default function RacionForm({
 
       <div className="al-form-section-divider">Alimento</div>
 
-      <Field label="Nombre del Alimento" required error={errors.nombre_alimento}>
-        <input
-          className={`al-form-input${errors.nombre_alimento ? " error" : ""}`}
-          placeholder="Ej: Pasto kikuyo, Concentrado lactación…"
-          value={form.nombre_alimento || ""}
-          onChange={e => s("nombre_alimento", e.target.value)}
-        />
-      </Field>
-
-      <Field label="Tipo / Categoría" required error={errors.tipo_alimento}>
+      <Field label="Producto Alimenticio" required error={errors.producto_id}>
         <select
-          className={`al-form-select${errors.tipo_alimento ? " error" : ""}`}
-          value={form.tipo_alimento || ""}
-          onChange={e => s("tipo_alimento", e.target.value)}
+          className={`al-form-select${errors.producto_id ? " error" : ""}`}
+          value={form.producto_id || ""}
+          onChange={(e) => s("producto_id", e.target.value)}
         >
-          <option value="">Seleccionar categoría…</option>
-          {TIPOS_ALIMENTO.map(t => (
-            <option key={t} value={t}>{t.replace("_", " ")}</option>
+          <option value="">Seleccionar alimento…</option>
+          {productosAlimento.map((p) => (
+            <option
+              key={p.id}
+              value={p.id}
+              disabled={Number(p.cantidad_actual || 0) <= 0}
+            >
+              {p.nombre}
+              {p.cantidad_actual != null ? ` - Stock: ${p.cantidad_actual}` : ""}
+            </option>
           ))}
         </select>
       </Field>
@@ -103,7 +107,7 @@ export default function RacionForm({
           step="0.1"
           placeholder="Ej: 5.5"
           value={form.cantidad_kg || ""}
-          onChange={e => s("cantidad_kg", e.target.value)}
+          onChange={(e) => s("cantidad_kg", e.target.value)}
         />
       </Field>
 
@@ -111,12 +115,14 @@ export default function RacionForm({
         <select
           className={`al-form-select${errors.frecuencia ? " error" : ""}`}
           value={form.frecuencia || ""}
-          onChange={e => s("frecuencia", e.target.value)}
+          onChange={(e) => s("frecuencia", e.target.value)}
         >
-          <option value="">Seleccionar frecuencia…</option>
-          {FRECUENCIAS.map(f => (
-            <option key={f} value={f}>{f.replace("_", " ")}</option>
-          ))}
+          <option value="">Seleccionar frecuencia...</option>
+          <option value="Diaria">Diaria</option>
+          <option value="Dos_veces_al_dia">Dos veces al día</option>
+          <option value="Semanal">Semanal</option>
+          <option value="Quincenal">Quincenal</option>
+          <option value="Mensual">Mensual</option>
         </select>
       </Field>
 
@@ -127,16 +133,16 @@ export default function RacionForm({
           className={`al-form-input${errors.fecha_registro ? " error" : ""}`}
           type="date"
           value={form.fecha_registro || ""}
-          onChange={e => s("fecha_registro", e.target.value)}
+          onChange={(e) => s("fecha_registro", e.target.value)}
         />
       </Field>
 
-      <Field label="Observaciones">
+      <Field label="Observaciones" error={errors.observaciones}>
         <textarea
           className="al-form-textarea"
-          placeholder="Notas adicionales sobre la ración, condición del animal, etc."
+          placeholder="Notas adicionales..."
           value={form.observaciones || ""}
-          onChange={e => s("observaciones", e.target.value)}
+          onChange={(e) => s("observaciones", e.target.value)}
           rows={3}
         />
       </Field>

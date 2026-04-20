@@ -46,7 +46,7 @@ export default function ModalDetalleRacion({ registro, onClose, onEditar, onElim
             <Item label="Animal" value={nombreAnimal} />
             <Item label="Tipo de Animal" value={registro.tipo_animal} />
             <Item label="Alimento" value={registro.nombre_alimento} />
-            <Item label="Categoría" value={<BadgeAlimentacion tipo={registro.tipo_alimento} />} />
+            <Item label="Producto asociado" value={registro.producto?.nombre || registro.nombre_alimento || "No asociado"} />
             <Item label="Cantidad" value={formatCantidad(registro.cantidad_kg)} />
             <Item label="Frecuencia" value={registro.frecuencia?.replace("_", " ")} />
             <Item label="Fecha Registro" value={formatFecha(registro.fecha_registro)} />

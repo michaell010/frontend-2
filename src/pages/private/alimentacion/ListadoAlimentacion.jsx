@@ -1,8 +1,11 @@
+import { useEffect, useMemo, useState, useCallback } from "react";
 import "../../../styles/modules/Alimentacion.css";
 
 import { PER_PAGE } from "./alimentacion.constants";
 import useAlimentacion from "./hooks/useToasts";
 import useTablaAlimentacion from "./hooks/useTablaAlimentacion";
+
+import { inventarioService } from "../../../services/inventario.service";
 
 import AlimentacionKPIs from "./components/AlimentacionKPIs";
 import AlimentacionGrafico from "./components/AlimentacionGrafico";
@@ -31,9 +34,69 @@ export default function ListadoAlimentacion() {
     handleActualizar,
     handleEliminar,
     recargarAlimentacion,
+    addToast,
   } = useAlimentacion();
 
+  const [productosInventario, setProductosInventario] = useState([]);
+
   const tabla = useTablaAlimentacion(registros);
+
+  const cargarProductosInventario = useCallback(async () => {
+    try {
+      const listaProductos = await inventarioService.getProductos();
+      setProductosInventario(Array.isArray(listaProductos) ? listaProductos : []);
+    } catch (err) {
+      const msg = err?.mensaje || "No se pudo cargar los productos del inventario.";
+      if (typeof addToast === "function") {
+        addToast(msg, "error");
+      }
+    }
+  }, [addToast]);
+
+  const recargarTodo = useCallback(async () => {
+    await Promise.all([
+      recargarAlimentacion?.(),
+      cargarProductosInventario(),
+    ]);
+  }, [recargarAlimentacion, cargarProductosInventario]);
+
+  useEffect(() => {
+    cargarProductosInventario();
+  }, [cargarProductosInventario]);
+
+  const alimentosDisponibles = useMemo(() => {
+    return productosInventario
+      .filter((p) => String(p.tipo || "").toLowerCase() === "alimento")
+      .map((p) => p.nombre)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, "es"));
+  }, [productosInventario]);
+
+  const handleGuardarLocal = async (form) => {
+    const creado = await handleGuardar(form);
+    await recargarTodo();
+    return creado;
+  };
+
+  const handleActualizarLocal = async (form) => {
+    const actualizado = await handleActualizar(form);
+    await recargarTodo();
+
+    if (actualizado?.id && modalDetalle?.id === actualizado.id) {
+      setModalDetalle(actualizado);
+    }
+
+    return actualizado;
+  };
+
+  const handleEliminarLocal = async (id) => {
+    await handleEliminar(id);
+    await recargarTodo();
+
+    if (modalDetalle?.id === id) {
+      setModalDetalle(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -55,7 +118,7 @@ export default function ListadoAlimentacion() {
           <p className="al-error-card__msg">{errorCarga}</p>
           <button
             className="al-btn al-btn--secondary"
-            onClick={recargarAlimentacion}
+            onClick={recargarTodo}
           >
             Reintentar
           </button>
@@ -74,7 +137,10 @@ export default function ListadoAlimentacion() {
           </p>
         </div>
 
-        <button className="al-btn al-btn--primary" onClick={() => setModalNuevo(true)}>
+        <button
+          className="al-btn al-btn--primary"
+          onClick={() => setModalNuevo(true)}
+        >
           ➕ Nueva Ración
         </button>
       </div>
@@ -134,6 +200,7 @@ export default function ListadoAlimentacion() {
                   onToggle={tabla.toggleFiltro}
                   onLimpiar={tabla.limpiarFiltros}
                   onCerrar={() => tabla.setFiltroOpen(false)}
+                  alimentosDisponibles={alimentosDisponibles}
                 />
               )}
             </div>
@@ -154,7 +221,7 @@ export default function ListadoAlimentacion() {
           onSort={tabla.handleSort}
           onVerDetalle={setModalDetalle}
           onEditar={setModalEditar}
-          onEliminar={handleEliminar}
+          onEliminar={handleEliminarLocal}
         />
 
         <AlimentacionPaginacion
@@ -169,14 +236,14 @@ export default function ListadoAlimentacion() {
       {modalNuevo && (
         <ModalNuevaRacion
           onClose={() => setModalNuevo(false)}
-          onGuardar={handleGuardar}
+          onGuardar={handleGuardarLocal}
         />
       )}
 
       {modalEditar && (
         <ModalEditarRacion
           onClose={() => setModalEditar(null)}
-          onGuardar={handleActualizar}
+          onGuardar={handleActualizarLocal}
           registro={modalEditar}
         />
       )}
@@ -185,7 +252,7 @@ export default function ListadoAlimentacion() {
         <ModalDetalleRacion
           onClose={() => setModalDetalle(null)}
           onEditar={setModalEditar}
-          onEliminar={handleEliminar}
+          onEliminar={handleEliminarLocal}
           registro={modalDetalle}
         />
       )}

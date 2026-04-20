@@ -1021,6 +1021,47 @@
   background:var(--iv-surface-alt);
 }
 
+.iv-analisis-box {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px;
+  color: #334155;
+}
+
+.iv-analisis-list {
+  margin: 0;
+  padding-left: 20px;
+  color: #334155;
+}
+
+.iv-analisis-prioridades {
+  display: grid;
+  gap: 12px;
+}
+
+.iv-analisis-prioridad {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.iv-analisis-prioridad strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.iv-analisis-prioridad span {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #16a34a;
+}
+
 /* Formulario */
 .iv-form {
   gap:1rem;

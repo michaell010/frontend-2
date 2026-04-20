@@ -5,14 +5,13 @@ import { formatFecha, formatCantidad, diasDesde } from "../alimentacion.constant
 import { formatFrecuencia } from "../alimentacion.constants";
 
 const COLS = [
-  { key: "id", label: "ID", sortable: true },
-  { key: "animal", label: "Animal", sortable: true },
-  { key: "tipo_animal", label: "Tipo Animal", sortable: true },
-  { key: "nombre_alimento", label: "Alimento", sortable: true },
-  { key: "tipo_alimento", label: "Categoría", sortable: true },
-  { key: "cantidad", label: "Cantidad", sortable: true },
-  { key: "frecuencia", label: "Frecuencia", sortable: true },
-  { key: "fecha", label: "Fecha", sortable: true },
+  { key: "id",              label: "ID",        sortable: true  },
+  { key: "animal",          label: "Animal",    sortable: true  },
+  { key: "tipo_animal",     label: "Tipo Animal", sortable: true },
+  { key: "nombre_alimento", label: "Alimento",  sortable: true  },
+  { key: "cantidad_kg",     label: "Cantidad",  sortable: true  },
+  { key: "frecuencia",      label: "Frecuencia", sortable: true },
+  { key: "fecha_registro",  label: "Fecha",     sortable: true  },
 ];
 
 const TIPO_ANIMAL_ICO = {
@@ -83,7 +82,7 @@ export default function AlimentacionTabla({
         <tbody>
           {filas.length === 0 ? (
             <tr>
-              <td colSpan={9} className="al-table__empty">
+              <td colSpan={8} className="al-table__empty">
                 😔 No se encontraron registros con los filtros actuales
               </td>
             </tr>
@@ -96,8 +95,7 @@ export default function AlimentacionTabla({
                   {TIPO_ANIMAL_ICO[r.tipo_animal] ?? "🐄"} {r.tipo_animal || "—"}
                 </span>
               </td>
-              <td>{r.nombre_alimento || "—"}</td>
-              <td><BadgeAlimentacion tipo={r.tipo_alimento} /></td>
+              <td>{r.nombre_alimento || r.producto?.nombre || "—"}</td>
               <td className="al-cell-cantidad">{formatCantidad(r.cantidad_kg)}</td>
               <td><CeldaFrecuencia frecuencia={r.frecuencia} /></td>
               <td><CeldaFecha fecha={r.fecha_registro} /></td>

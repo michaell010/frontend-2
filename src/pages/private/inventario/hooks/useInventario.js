@@ -5,6 +5,7 @@ import {
   updateProducto,
   deleteProducto,
   exportarInventario,
+  analizarInventarioIA,
 } from "../../../../services/inventario.service";
 
 import { notify } from "../../../../services/notify.service";
@@ -23,6 +24,10 @@ export function useInventario() {
 
   const [modalDetalle, setModalDetalle] = useState(null);
   const [modalForm, setModalForm] = useState(null);
+
+  const [analisisIA, setAnalisisIA] = useState(null);
+  const [modalAnalisisIA, setModalAnalisisIA] = useState(false);
+  const [loadingIA, setLoadingIA] = useState(false);
 
   const cargarProductos = useCallback(async () => {
     try {
@@ -147,6 +152,20 @@ export function useInventario() {
     }
   }, []);
 
+  const handleAnalisisIA = useCallback(async () => {
+    try {
+      setLoadingIA(true);
+      const data = await analizarInventarioIA();
+      setAnalisisIA(data);
+      setModalAnalisisIA(true);
+    } catch (error) {
+      console.error("Error analizando inventario con IA:", error);
+      alert(error?.mensaje || "No se pudo generar el análisis IA");
+    } finally {
+      setLoadingIA(false);
+    }
+  }, []);
+
   const kpis = useMemo(() => {
     const total = productos.length;
     const criticos = productos.filter((p) => p.estadoKey === "critico").length;
@@ -265,6 +284,11 @@ export function useInventario() {
     handleEliminarProducto,
     handleGuardarProducto,
     handleExportar,
+    analisisIA,
+    modalAnalisisIA,
+    setModalAnalisisIA,
+    loadingIA,
+    handleAnalisisIA,
     recargarProductos: cargarProductos,
   };
 }

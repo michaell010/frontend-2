@@ -1,8 +1,12 @@
-// src/pages/private/alimentacion/components/AlimentacionFiltros.jsx
+import { TIPOS_ANIMAL } from "../alimentacion.constants";
 
-import { TIPOS_ALIMENTO, TIPOS_ANIMAL } from "../alimentacion.constants";
-
-export default function AlimentacionFiltros({ filtros, onToggle, onLimpiar, onCerrar }) {
+export default function AlimentacionFiltros({
+  filtros,
+  onToggle,
+  onLimpiar,
+  onCerrar,
+  alimentosDisponibles = [],
+}) {
   return (
     <div className="al-filtros-panel">
       <div className="al-filtros-panel__header">
@@ -11,15 +15,15 @@ export default function AlimentacionFiltros({ filtros, onToggle, onLimpiar, onCe
       </div>
 
       <div className="al-filtros-panel__section">
-        <div className="al-filtros-panel__label">Tipo de Alimento</div>
+        <div className="al-filtros-panel__label">Alimento</div>
         <div className="al-filtros-panel__chips">
-          {TIPOS_ALIMENTO.map(t => (
+          {alimentosDisponibles.map(nombre => (
             <button
-              key={t}
-              className={`al-filtro-chip${filtros.tipos.includes(t) ? " active" : ""}`}
-              onClick={() => onToggle("tipos", t)}
+              key={nombre}
+              className={`al-filtro-chip${filtros.alimentos.includes(nombre) ? " active" : ""}`}
+              onClick={() => onToggle("alimentos", nombre)}
             >
-              {t.replace("_", " ")}
+              {nombre}
             </button>
           ))}
         </div>

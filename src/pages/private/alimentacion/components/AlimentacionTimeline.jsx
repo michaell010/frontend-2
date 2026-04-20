@@ -25,7 +25,6 @@ export default function AlimentacionTimeline({ registros, onVerDetalle }) {
           {recientes.slice(0, 4).map((r, i) => {
             const dias    = diasDesde(r.fecha_registro);
             const reciente = dias !== null && dias <= 1;
-            const estilo  = TIPO_ALIMENTO_STYLES[r.tipo_alimento] ?? TIPO_ALIMENTO_STYLES.Otro;
 
             return (
               <div
@@ -54,7 +53,7 @@ export default function AlimentacionTimeline({ registros, onVerDetalle }) {
                     {r.animal?.nombre || r.animal?.codigo || `Animal #${r.animal_id}`}
                   </p>
                   <p className="al-timeline__detalle">
-                    {estilo.icono} {r.nombre_alimento || r.tipo_alimento?.replace("_", " ") || "—"} · {r.tipo_animal || "—"}
+                    📦 {r.nombre_alimento || r.producto?.nombre || "—"} · {r.tipo_animal || "—"}
                   </p>
                 </div>
               </div>

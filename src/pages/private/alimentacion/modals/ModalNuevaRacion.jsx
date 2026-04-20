@@ -1,29 +1,31 @@
-// src/pages/private/alimentacion/modals/ModalNuevaRacion.jsx
-
 import { useEffect, useState } from "react";
 import RacionForm from "../shared/RacionForm";
 import { ganadoService } from "../../../../services/ganado.service";
+import { inventarioService } from "../../../../services/inventario.service";
 
 const EMPTY = {
-  tipo_animal:     "",
-  animal_id:       "",
-  nombre_alimento: "",
-  tipo_alimento:   "",
-  cantidad_kg:     "",
-  frecuencia:      "",
-  fecha_registro:  new Date().toISOString().split("T")[0],
-  observaciones:   "",
+  tipo_animal: "",
+  animal_id: "",
+  producto_id: "",
+  cantidad_kg: "",
+  frecuencia: "",
+  fecha_registro: new Date().toISOString().split("T")[0],
+  observaciones: "",
 };
 
 const validate = (f) => {
   const e = {};
-  if (!f.tipo_animal)      e.tipo_animal      = "El tipo de animal es requerido";
-  if (!f.animal_id)        e.animal_id        = "El animal es requerido";
-  if (!f.nombre_alimento)  e.nombre_alimento  = "El nombre del alimento es requerido";
-  if (!f.tipo_alimento)    e.tipo_alimento    = "La categoría es requerida";
-  if (!f.cantidad_kg)      e.cantidad_kg      = "La cantidad es requerida";
-  if (!f.frecuencia)       e.frecuencia       = "La frecuencia es requerida";
-  if (!f.fecha_registro)   e.fecha_registro   = "La fecha es requerida";
+
+  if (!f.tipo_animal) e.tipo_animal = "El tipo de animal es requerido";
+  if (!f.animal_id) e.animal_id = "El animal es requerido";
+  if (!f.producto_id) e.producto_id = "Debe seleccionar un alimento";
+
+  if (!f.cantidad_kg) e.cantidad_kg = "La cantidad es requerida";
+  else if (Number(f.cantidad_kg) <= 0) e.cantidad_kg = "La cantidad debe ser mayor que 0";
+
+  if (!f.frecuencia) e.frecuencia = "La frecuencia es requerida";
+  if (!f.fecha_registro) e.fecha_registro = "La fecha es requerida";
+
   return e;
 };
 
@@ -32,44 +34,85 @@ export default function ModalNuevaRacion({ onClose, onGuardar }) {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [animales, setAnimales] = useState([]);
-  const [loadingAnimales, setLoadingAnimales] = useState(true);
+  const [productos, setProductos] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
     const cargar = async () => {
       try {
-        setLoadingAnimales(true);
-        const lista = await ganadoService.listar();
-        setAnimales(lista);
+        setLoadingData(true);
+
+        const [listaAnimales, listaProductos] = await Promise.all([
+          ganadoService.listar(),
+          inventarioService.getProductos(),
+        ]);
+
+        setAnimales(Array.isArray(listaAnimales) ? listaAnimales : []);
+        setProductos(Array.isArray(listaProductos) ? listaProductos : []);
       } catch (err) {
-        console.error("Error cargando animales:", err);
+        console.error("Error cargando datos:", err);
       } finally {
-        setLoadingAnimales(false);
+        setLoadingData(false);
       }
     };
+
     cargar();
   }, []);
 
   const handleChange = (k, v) => {
-    setForm(prev => ({ ...prev, [k]: v }));
-    setErrors(prev => ({ ...prev, [k]: "" }));
+    setForm((prev) => ({ ...prev, [k]: v }));
+    setErrors((prev) => ({ ...prev, [k]: "" }));
+  };
+
+  const mapearErroresBackend = (listaErrores = []) => {
+    const nuevos = {};
+
+    listaErrores.forEach((err) => {
+      const campo = err?.campo;
+      const mensaje = err?.mensaje || "Valor inválido";
+
+      if (!campo) return;
+
+      if (campo === "ganado_id") nuevos.animal_id = mensaje;
+      else if (campo === "cantidad") nuevos.cantidad_kg = mensaje;
+      else if (campo === "fecha") nuevos.fecha_registro = mensaje;
+      else if (campo === "observacion") nuevos.observaciones = mensaje;
+      else nuevos[campo] = mensaje;
+    });
+
+    return nuevos;
   };
 
   const handleGuardar = async () => {
-    const e = validate(form);
-    if (Object.keys(e).length) {
-      setErrors(e);
+    const erroresFront = validate(form);
+
+    if (Object.keys(erroresFront).length) {
+      setErrors(erroresFront);
       return;
     }
+
     setLoading(true);
+
     try {
       await onGuardar(form);
+    } catch (err) {
+      console.error("Error guardando ración:", err);
+      console.error("Mensaje:", err?.mensaje);
+      console.error("Errores completos:", JSON.stringify(err?.errores, null, 2));
+      console.log("FORM ENVIADO:", form);
+      console.log("FRECUENCIA ENVIADA:", form.frecuencia);
+
+      if (Array.isArray(err?.errores) && err.errores.length) {
+        const nuevos = mapearErroresBackend(err.errores);
+        setErrors((prev) => ({ ...prev, ...nuevos }));
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="al-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="al-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="al-modal">
         <div className="al-modal__header">
           <div>
@@ -80,21 +123,33 @@ export default function ModalNuevaRacion({ onClose, onGuardar }) {
         </div>
 
         <div className="al-modal__body">
-          {loadingAnimales ? (
-            <p>Cargando animales...</p>
+          {loadingData ? (
+            <p>Cargando datos...</p>
           ) : (
             <RacionForm
               form={form}
               errors={errors}
               onChange={handleChange}
               animales={animales}
+              productos={productos}
             />
           )}
         </div>
 
         <div className="al-modal__footer">
-          <button className="al-btn al-btn--secondary" onClick={onClose} disabled={loading}>Cancelar</button>
-          <button className="al-btn al-btn--primary" onClick={handleGuardar} disabled={loading || loadingAnimales}>
+          <button
+            className="al-btn al-btn--secondary"
+            onClick={onClose}
+            disabled={loading}
+          >
+            Cancelar
+          </button>
+
+          <button
+            className="al-btn al-btn--primary"
+            onClick={handleGuardar}
+            disabled={loading || loadingData}
+          >
             {loading ? "⏳ Guardando…" : "✅ Guardar Ración"}
           </button>
         </div>

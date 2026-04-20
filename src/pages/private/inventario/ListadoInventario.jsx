@@ -5,6 +5,7 @@ import InventarioSuministros from "./components/InventarioSuministros";
 import InventarioTabla from "./components/InventarioTabla";
 import InventarioModalDetalle from "./modals/InventarioModalDetalle";
 import InventarioModalForm from "./modals/InventarioModalForm";
+import InventarioModalAnalisisIA from "./modals/InventarioModalAnalisis";
 import "../../../styles/modules/Inventario.css";
 
 export default function ListadoInventario() {
@@ -29,8 +30,12 @@ export default function ListadoInventario() {
     setModalForm,
     handleEliminarProducto,
     handleGuardarProducto,
-    handleExportar,
     recargarProductos,
+    analisisIA,
+    modalAnalisisIA,
+    setModalAnalisisIA,
+    loadingIA,
+    handleAnalisisIA,
   } = useInventario();
 
   if (loading && !productos.length) {
@@ -65,8 +70,8 @@ export default function ListadoInventario() {
         silos={silos}
         estadisticasHero={estadisticasHero}
         onAnadirInsumo={() => setModalForm({})}
-        onExportar={handleExportar}
-        loading={loading}
+        onExportar={handleAnalisisIA}
+        loading={loadingIA}
       />
 
       <InventarioKPIs kpis={kpis} />
@@ -103,6 +108,12 @@ export default function ListadoInventario() {
           onGuardar={handleGuardarProducto}
         />
       )}
+
+      <InventarioModalAnalisisIA
+        abierto={modalAnalisisIA}
+        analisis={analisisIA}
+        onClose={() => setModalAnalisisIA(false)}
+      />
     </div>
   );
 }
