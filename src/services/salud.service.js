@@ -70,33 +70,38 @@ const mapTipoAIcono = (tipo) => {
 };
 
 const calcularEstadoEvento = (item) => {
-  if (!item?.proxima_fecha) {
-    return {
-      estado: "Completado",
-      estadoKey: "completado",
-    };
-  }
-
   const hoy = new Date();
-  const proxima = new Date(item.proxima_fecha);
-
   hoy.setHours(0, 0, 0, 0);
-  proxima.setHours(0, 0, 0, 0);
 
-  if (proxima < hoy) {
-    return {
-      estado: "Pendiente",
-      estadoKey: "pendiente",
-    };
+  if (item?.fecha) {
+    const fechaRegistro = new Date(item.fecha);
+    fechaRegistro.setHours(0, 0, 0, 0);
+
+    if (fechaRegistro > hoy) {
+      return {
+        estado: "Pendiente",
+        estadoKey: "pendiente",
+      };
+    }
   }
 
-  const diff = Math.ceil((proxima - hoy) / (1000 * 60 * 60 * 24));
+  if (item?.proxima_fecha) {
+    const proxima = new Date(item.proxima_fecha);
+    proxima.setHours(0, 0, 0, 0);
 
-  if (diff <= 7) {
-    return {
-      estado: "En Curso",
-      estadoKey: "en_curso",
-    };
+    if (proxima > hoy) {
+      return {
+        estado: "Pendiente",
+        estadoKey: "pendiente",
+      };
+    }
+
+    if (proxima.toDateString() === hoy.toDateString()) {
+      return {
+        estado: "En Curso",
+        estadoKey: "en_curso",
+      };
+    }
   }
 
   return {
@@ -125,6 +130,11 @@ export const adaptarEventoDesdeBackend = (item) => {
     ganado_id: item.ganado_id ?? "",
     usuario_id: item.usuario_id ?? "",
     producto_id: item.producto_id ?? "",
+
+    cantidad_usada:
+      item?.cantidad_usada !== null && item?.cantidad_usada !== undefined
+        ? Number(item.cantidad_usada)
+        : "",
 
     animalCod: item?.ganado?.codigo || "Sin código",
     animalNombre: item?.ganado?.nombre || "",
@@ -162,7 +172,6 @@ export const adaptarEventoDesdeBackend = (item) => {
 
 export const adaptarEventoHaciaBackend = (form) => ({
   ganado_id: Number(form.ganado_id),
-  usuario_id: form.usuario_id ? Number(form.usuario_id) : null,
   producto_id: form.producto_id ? Number(form.producto_id) : null,
   tipo: form.tipo || "Revision",
   descripcion: form.descripcion || form.notas || null,
@@ -302,20 +311,29 @@ export const construirProximosDesdeEventos = (eventos = []) => {
 };
 
 export const construirEstatusDesdeEventos = (eventos = []) => {
+  const hoyStr = new Date().toISOString().split("T")[0];
   const total = eventos.length || 1;
 
-  const completados = eventos.filter((e) => e.estadoKey === "completado").length;
-  const pendientes = eventos.filter((e) => e.estadoKey === "pendiente").length;
-  const enCurso = eventos.filter((e) => e.estadoKey === "en_curso").length;
+  const completados = eventos.filter((e) => {
+    const fechaOk = !e.fechaISO || e.fechaISO <= hoyStr;
+    const proximaOk = !e.proxima_fecha || e.proxima_fecha <= hoyStr;
+    return fechaOk && proximaOk;
+  }).length;
+
+  const pendientes = eventos.filter((e) => {
+    const fechaFutura = e.fechaISO && e.fechaISO > hoyStr;
+    const proximaFutura = e.proxima_fecha && e.proxima_fecha > hoyStr;
+    return fechaFutura || proximaFutura;
+  }).length;
 
   return [
     {
-      label: "Eventos completados",
-      pct: Math.round((completados / total) * 100),
+      label: "Vacunación al día",
+      pct: 100,
     },
     {
-      label: "Seguimientos activos",
-      pct: Math.round((enCurso / total) * 100),
+      label: "Seguimientos al día",
+      pct: Math.round((completados / total) * 100),
     },
     {
       label: "Pendientes sanitarios",

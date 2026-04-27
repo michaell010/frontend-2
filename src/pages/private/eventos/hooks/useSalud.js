@@ -1,4 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { exportarHistorialSaludPDF } from "../../../../utils/exportarHistorialSaludPDF";
+import { getUsuarioActual } from "../../../../services/AuthService";
 import {
   listarEventos,
   crearEvento,
@@ -157,9 +159,18 @@ export function useSalud() {
     [cargarModulo]
   );
 
-  const handleExportar = useCallback(async () => {
-    notify.info("La exportación se conectará cuando el endpoint esté listo.");
-  }, []);
+  const handleExportar = useCallback(() => {
+  try {
+    const usuario = getUsuarioActual?.() || {};
+
+    exportarHistorialSaludPDF(historialFiltrado, usuario);
+
+    notify.success("PDF generado correctamente");
+  } catch (error) {
+    console.error("Error exportando PDF:", error);
+    notify.error("No se pudo generar el PDF");
+  }
+}, [historialFiltrado]);
 
   return {
     historial: historialFiltrado,

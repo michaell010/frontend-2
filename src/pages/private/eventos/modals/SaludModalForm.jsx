@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ganadoService } from "../../../../services/ganado.service";
+import { getProductosSalud } from "../../../../services/inventario.service";
 import "../../../../styles/modules/Salud.css";
 
 const TIPOS = [
@@ -15,8 +16,13 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
   const esEdicion = !!evento?.id || !!evento?.backendId;
 
   const [ganados, setGanados] = useState([]);
+  const [productos, setProductos] = useState([]);
+
   const [loadingGanados, setLoadingGanados] = useState(false);
+  const [loadingProductos, setLoadingProductos] = useState(false);
+
   const [errorGanado, setErrorGanado] = useState("");
+  const [errorProductos, setErrorProductos] = useState("");
 
   const [form, setForm] = useState({
     id: evento?.id ?? null,
@@ -28,6 +34,9 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
 
     tipo: evento?.tipo ?? "Revision",
     fechaISO: evento?.fechaISO ?? new Date().toISOString().split("T")[0],
+
+    producto_id: evento?.producto_id ?? "",
+    cantidad_usada: evento?.cantidad_usada ?? "",
 
     descripcion: evento?.descripcion ?? evento?.notas ?? "",
     dosis: evento?.dosis ?? "",
@@ -41,11 +50,12 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
 
   const [errores, setErrores] = useState({});
 
-  const set = (campo, valor) =>
+  const set = (campo, valor) => {
     setForm((prev) => ({
       ...prev,
       [campo]: valor,
     }));
+  };
 
   useEffect(() => {
     const cargarGanado = async () => {
@@ -69,6 +79,28 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
     cargarGanado();
   }, []);
 
+  useEffect(() => {
+    const cargarProductos = async () => {
+      setLoadingProductos(true);
+      setErrorProductos("");
+
+      try {
+        const data = await getProductosSalud();
+        setProductos(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error("Error cargando productos:", error);
+        setProductos([]);
+        setErrorProductos(
+          error?.mensaje || "No se pudo cargar el listado de productos."
+        );
+      } finally {
+        setLoadingProductos(false);
+      }
+    };
+
+    cargarProductos();
+  }, []);
+
   const ganadoCoincidente = useMemo(() => {
     const codigo = String(form.animalCod || "").trim().toLowerCase();
     if (!codigo) return null;
@@ -79,6 +111,14 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
       ) || null
     );
   }, [form.animalCod, ganados]);
+
+  const productoSeleccionado = useMemo(() => {
+    if (!form.producto_id) return null;
+
+    return (
+      productos.find((p) => String(p.id) === String(form.producto_id)) || null
+    );
+  }, [form.producto_id, productos]);
 
   useEffect(() => {
     if (ganadoCoincidente) {
@@ -123,6 +163,28 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
       nuevosErrores.fechaISO = "La fecha es obligatoria.";
     }
 
+    const producto = productos.find(
+      (p) => String(p.id) === String(form.producto_id)
+    );
+
+    const stock = Number(producto?.cantidad_actual || 0);
+    const cantidad = Number(form.cantidad_usada || 0);
+
+    if (!producto) {
+      nuevosErrores.producto_id =
+        "Debes seleccionar un producto del inventario.";
+    }
+
+    if (!cantidad || cantidad <= 0) {
+      nuevosErrores.cantidad_usada = "La cantidad debe ser mayor a 0.";
+    }
+
+    if (producto && cantidad > stock) {
+      nuevosErrores.cantidad_usada = `Stock insuficiente. Disponible: ${stock} ${
+        producto.unidad || ""
+      }.`;
+    }
+
     if (form.costo !== "" && Number.isNaN(Number(form.costo))) {
       nuevosErrores.costo = "El costo debe ser un valor numérico válido.";
     }
@@ -137,6 +199,9 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
     onGuardar({
       ...form,
       ganado_id: Number(form.ganado_id),
+      producto_id: form.producto_id ? Number(form.producto_id) : null,
+      cantidad_usada:
+        form.cantidad_usada === "" ? null : Number(form.cantidad_usada),
       costo: form.costo === "" ? "" : Number(form.costo),
     });
   };
@@ -158,6 +223,7 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
                 : "Registro Clínico"}
             </h2>
           </div>
+
           <button className="sl-modal__close" onClick={onClose}>
             ✕
           </button>
@@ -174,15 +240,19 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
                 onChange={(e) => set("animalCod", e.target.value)}
                 disabled={loadingGanados}
               />
+
               {errores.animalCod && (
                 <small className="sl-form__error">{errores.animalCod}</small>
               )}
+
               {errores.ganado_id && (
                 <small className="sl-form__error">{errores.ganado_id}</small>
               )}
+
               {errorGanado && !errores.ganado_id && (
                 <small className="sl-form__error">{errorGanado}</small>
               )}
+
               {ganadoCoincidente && (
                 <small className="sl-form__success">
                   Ganado encontrado: {ganadoCoincidente.codigo}
@@ -201,6 +271,7 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
                 value={form.fechaISO}
                 onChange={(e) => set("fechaISO", e.target.value)}
               />
+
               {errores.fechaISO && (
                 <small className="sl-form__error">{errores.fechaISO}</small>
               )}
@@ -221,6 +292,7 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
                   </option>
                 ))}
               </select>
+
               {errores.tipo && (
                 <small className="sl-form__error">{errores.tipo}</small>
               )}
@@ -237,6 +309,63 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
             </div>
           </div>
 
+          <div className="sl-form__grid-2">
+            <div className="sl-form__row">
+              <label className="sl-form__label">Producto *</label>
+
+              <select
+                className="sl-form__select"
+                value={form.producto_id}
+                onChange={(e) => set("producto_id", e.target.value)}
+                disabled={loadingProductos}
+              >
+                <option value="">Seleccione...</option>
+
+                {productos.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nombre} ({p.tipo}) · Stock: {p.cantidad_actual}{" "}
+                    {p.unidad || ""}
+                  </option>
+                ))}
+              </select>
+
+              {productoSeleccionado && (
+                <p className="sl-form__hint">
+                  Disponible: {productoSeleccionado.cantidad_actual}{" "}
+                  {productoSeleccionado.unidad || ""}
+                </p>
+              )}
+
+              {errores.producto_id && (
+                <small className="sl-form__error">{errores.producto_id}</small>
+              )}
+
+              {errorProductos && (
+                <small className="sl-form__error">{errorProductos}</small>
+              )}
+            </div>
+
+            <div className="sl-form__row">
+              <label className="sl-form__label">Cantidad a suministrar *</label>
+
+              <input
+                className="sl-form__input"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Ej: 5"
+                value={form.cantidad_usada}
+                onChange={(e) => set("cantidad_usada", e.target.value)}
+              />
+
+              {errores.cantidad_usada && (
+                <small className="sl-form__error">
+                  {errores.cantidad_usada}
+                </small>
+              )}
+            </div>
+          </div>
+
           <div className="sl-form__row">
             <label className="sl-form__label">Descripción / Observaciones</label>
             <textarea
@@ -250,10 +379,10 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
 
           <div className="sl-form__grid-2">
             <div className="sl-form__row">
-              <label className="sl-form__label">Dosis</label>
+              <label className="sl-form__label">Dosis / Indicaciones</label>
               <input
                 className="sl-form__input"
-                placeholder="Ej: 5 ml"
+                placeholder="Ej: Aplicar vía intramuscular cada 24 horas"
                 value={form.dosis}
                 onChange={(e) => set("dosis", e.target.value)}
               />
@@ -281,13 +410,22 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
               value={form.costo}
               onChange={(e) => set("costo", e.target.value)}
             />
+
             {errores.costo && (
               <small className="sl-form__error">{errores.costo}</small>
             )}
           </div>
 
           {loadingGanados && (
-            <small className="sl-form__helper">Cargando ganado existente...</small>
+            <small className="sl-form__helper">
+              Cargando ganado existente...
+            </small>
+          )}
+
+          {loadingProductos && (
+            <small className="sl-form__helper">
+              Cargando medicamentos e insumos...
+            </small>
           )}
         </div>
 
@@ -295,6 +433,7 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
           <button className="sl-btn sl-btn--ghost" onClick={onClose}>
             Cancelar
           </button>
+
           <button className="sl-btn sl-btn--primary" onClick={handleSubmit}>
             {esEdicion ? "Guardar Cambios" : "Crear Evento"}
           </button>

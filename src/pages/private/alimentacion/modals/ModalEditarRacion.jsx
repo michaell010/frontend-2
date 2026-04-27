@@ -19,6 +19,34 @@ const validate = (f) => {
   return e;
 };
 
+const validarStockDisponible = (form, productos, registroOriginal) => {
+  const producto = productos.find(
+    (p) => String(p.id) === String(form.producto_id)
+  );
+
+  if (!producto) return null;
+
+  const stockActual = Number(producto.cantidad_actual || 0);
+  const cantidadNueva = Number(form.cantidad_kg || 0);
+
+  const mismoProducto =
+    String(form.producto_id) === String(registroOriginal.producto_id);
+
+  const cantidadAnterior = Number(registroOriginal.cantidad_kg || 0);
+
+  const stockDisponibleReal = mismoProducto
+    ? stockActual + cantidadAnterior
+    : stockActual;
+
+  if (cantidadNueva > stockDisponibleReal) {
+    return {
+      cantidad_kg: `Stock insuficiente. Disponible: ${stockDisponibleReal} kg. Solicitado: ${cantidadNueva} kg.`,
+    };
+  }
+
+  return null;
+};
+
 export default function ModalEditarRacion({ registro, onClose, onGuardar }) {
   const [form, setForm] = useState({ ...registro });
   const [errors, setErrors] = useState({});
@@ -79,32 +107,41 @@ export default function ModalEditarRacion({ registro, onClose, onGuardar }) {
   };
 
   const handleGuardar = async () => {
-    const erroresFront = validate(form);
+  // 1. Validación normal del formulario
+  const erroresFront = validate(form);
 
-    if (Object.keys(erroresFront).length) {
-      setErrors(erroresFront);
-      return;
+  if (Object.keys(erroresFront).length) {
+    setErrors(erroresFront);
+    return;
+  }
+
+  // 2. Validación de stock disponible
+  const errorStock = validarStockDisponible(form, productos, registro);
+
+  if (errorStock) {
+    setErrors((prev) => ({ ...prev, ...errorStock }));
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    await onGuardar(form);
+  } catch (err) {
+    console.error("Error actualizando ración:", err);
+    console.error("Mensaje:", err?.mensaje);
+    console.error("Errores completos:", JSON.stringify(err?.errores, null, 2));
+    console.log("FORM EDITADO ENVIADO:", form);
+    console.log("FRECUENCIA EDITADA:", form.frecuencia);
+
+    if (Array.isArray(err?.errores) && err.errores.length) {
+      const nuevos = mapearErroresBackend(err.errores);
+      setErrors((prev) => ({ ...prev, ...nuevos }));
     }
-
-    setLoading(true);
-
-    try {
-      await onGuardar(form);
-    } catch (err) {
-      console.error("Error actualizando ración:", err);
-      console.error("Mensaje:", err?.mensaje);
-      console.error("Errores completos:", JSON.stringify(err?.errores, null, 2));
-      console.log("FORM EDITADO ENVIADO:", form);
-      console.log("FRECUENCIA EDITADA:", form.frecuencia);
-
-      if (Array.isArray(err?.errores) && err.errores.length) {
-        const nuevos = mapearErroresBackend(err.errores);
-        setErrors((prev) => ({ ...prev, ...nuevos }));
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="al-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>

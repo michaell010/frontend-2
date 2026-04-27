@@ -29,6 +29,25 @@ const validate = (f) => {
   return e;
 };
 
+const validarStockDisponible = (form, productos) => {
+  const producto = productos.find(
+    (p) => String(p.id) === String(form.producto_id)
+  );
+
+  if (!producto) return null;
+
+  const stockDisponible = Number(producto.cantidad_actual || 0);
+  const cantidadSolicitada = Number(form.cantidad_kg || 0);
+
+  if (cantidadSolicitada > stockDisponible) {
+    return {
+      cantidad_kg: `Stock insuficiente. Disponible: ${stockDisponible} kg. Solicitado: ${cantidadSolicitada} kg.`,
+    };
+  }
+
+  return null;
+};
+
 export default function ModalNuevaRacion({ onClose, onGuardar }) {
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
@@ -91,16 +110,19 @@ export default function ModalNuevaRacion({ onClose, onGuardar }) {
       return;
     }
 
+    const errorStock = validarStockDisponible(form, productos);
+
+    if (errorStock) {
+      setErrors((prev) => ({ ...prev, ...errorStock }));
+      return;
+    }
+
     setLoading(true);
 
     try {
       await onGuardar(form);
     } catch (err) {
       console.error("Error guardando ración:", err);
-      console.error("Mensaje:", err?.mensaje);
-      console.error("Errores completos:", JSON.stringify(err?.errores, null, 2));
-      console.log("FORM ENVIADO:", form);
-      console.log("FRECUENCIA ENVIADA:", form.frecuencia);
 
       if (Array.isArray(err?.errores) && err.errores.length) {
         const nuevos = mapearErroresBackend(err.errores);
