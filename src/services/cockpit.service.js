@@ -2,6 +2,8 @@
 // cockpit.service.js – Finanzas / Ventas
 // ─────────────────────────────────────────────
 
+import { exportarCockpitPDF } from "../utils/exportarCockpitPDF";
+
 const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:3000/api").replace(/\/+$/, "");
 
 /* ── helpers base ─────────────────────────── */
@@ -198,20 +200,20 @@ export const deleteTransaccion = async (id) => {
   return extraerData(res);
 };
 
-export const exportarReporte = async (formato = "pdf") => {
-  const blob = await downloadRequest(
-    `/ventas/reporte?formato=${encodeURIComponent(formato)}`,
-    { method: "GET" }
-  );
-
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-
-  a.href = url;
-  a.download = `reporte-ventas.${formato}`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  URL.revokeObjectURL(url);
+export const exportarReporte = async ({
+  kpis = [],
+  barras = [],
+  liquidacion = [],
+  transacciones = [],
+  usuario = {},
+  periodoActivo = "Mes",
+} = {}) => {
+  await exportarCockpitPDF({
+    kpis,
+    barras,
+    liquidacion,
+    transacciones,
+    usuario,
+    periodoActivo,
+  });
 };

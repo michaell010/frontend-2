@@ -1,5 +1,6 @@
 // src/services/ventas.service.js
 import api from "./api";
+import { exportarVentasPDF } from "../utils/exportarVentasPDF";
 
 export const ESTADO_META = {
   completado: { label: "Completado", color: "#15803d" },
@@ -252,16 +253,8 @@ export async function obtenerKpisVentas() {
   }
 }
 
-export async function exportarVentas() {
+export async function exportarVentas(usuario = {}, resumenHero = {}) {
   const ventas = await listarVentas();
-  const contenido = JSON.stringify(ventas, null, 2);
-  const blob = new Blob([contenido], { type: "application/json;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
+  await exportarVentasPDF(ventas, usuario, resumenHero);
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `ventas-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-
-  URL.revokeObjectURL(url);
 }

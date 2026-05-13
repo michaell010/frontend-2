@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { getUsuarioActual } from "../../../../services/AuthService";
 import {
   listarVentas,
   obtenerVenta,
@@ -225,17 +226,20 @@ export function useVentas() {
   );
 
   const handleExportar = useCallback(async () => {
-    try {
-      setLoading(true);
-      await exportarVentas();
-      notify.success("Exportación realizada correctamente");
-    } catch (error) {
-      console.error("Error exportando ventas:", error);
-      notify.error(getErrorMessage(error));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  try {
+    setLoading(true);
+
+    const usuario = getUsuarioActual?.() || {};
+    await exportarVentas(usuario, resumenHero);
+
+    toast.success("Reporte de ventas exportado correctamente");
+  } catch (error) {
+    console.error("Error exportando ventas:", error);
+    toast.error(error?.mensaje || error?.message || "No se pudo exportar el reporte");
+  } finally {
+    setLoading(false);
+  }
+}, [resumenHero]);
 
   return {
     ventas: ventasPaginadas,

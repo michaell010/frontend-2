@@ -147,17 +147,23 @@ export function useCockpit() {
   );
 
   const handleExportar = useCallback(async () => {
-    try {
-      setLoading(true);
-      await exportarReporte("pdf");
-      notify.success("Reporte exportado correctamente");
-    } catch (error) {
-      console.warn("No se pudo exportar el reporte:", error);
-      notify.error(getErrorMessage(error));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  setLoading(true);
+
+  try {
+    await exportarReporte({
+      kpis,
+      barras,
+      liquidacion,
+      transacciones,
+      periodoActivo,
+      usuario: JSON.parse(localStorage.getItem("usuario") || "{}"),
+    });
+  } catch (error) {
+    console.error("No se pudo exportar el reporte:", error);
+  } finally {
+    setLoading(false);
+  }
+}, [kpis, barras, liquidacion, transacciones, periodoActivo]);
 
   const eliminarTransaccion = useCallback(async (transaccion) => {
     const idVisual = typeof transaccion === "object" ? transaccion?.id : transaccion;

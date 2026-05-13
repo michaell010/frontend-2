@@ -18,6 +18,30 @@ const redirigirLoginSiCorresponde = () => {
   }
 };
 
+const extraerPayload = (res) => {
+  return res?.data || res?.mensaje?.data || res?.mensaje || res || null;
+};
+
+const guardarSesion = ({ accessToken, refreshToken, usuario }) => {
+  if (accessToken) {
+    localStorage.setItem("token", accessToken);
+  }
+
+  if (refreshToken) {
+    localStorage.setItem("refreshToken", refreshToken);
+  }
+
+  if (usuario) {
+    localStorage.setItem(
+      "usuario",
+      JSON.stringify({
+        ...usuario,
+        permisos: Array.isArray(usuario.permisos) ? usuario.permisos : [],
+      })
+    );
+  }
+};
+
 const construirErrorDesdeJson = (data, status) => ({
   status,
   ok: false,
@@ -37,24 +61,18 @@ export const login = async (correo, contrasena) => {
       body: JSON.stringify({ correo, contrasena }),
     });
 
-    const payload = res?.data || res?.mensaje?.data || null;
+    const payload = extraerPayload(res);
 
-    const accessToken =
-      payload?.accessToken ||
-      payload?.token ||
-      "";
-
+    const accessToken = payload?.accessToken || payload?.token || "";
     const refreshToken = payload?.refreshToken || "";
     const usuario = payload?.usuario || null;
 
     if (res?.ok && accessToken) {
-      localStorage.setItem("token", accessToken);
-
-      if (refreshToken) {
-        localStorage.setItem("refreshToken", refreshToken);
-      }
-
-      localStorage.setItem("usuario", JSON.stringify(usuario || {}));
+      guardarSesion({
+        accessToken,
+        refreshToken,
+        usuario,
+      });
     }
 
     return {
@@ -127,8 +145,7 @@ export const resetPassword = async (token, nuevaContrasena) => {
 
     return {
       ok: true,
-      mensaje:
-        data?.mensaje || "Contraseña actualizada correctamente",
+      mensaje: data?.mensaje || "Contraseña actualizada correctamente",
       data: data?.data ?? null,
     };
   } catch (error) {
@@ -183,10 +200,16 @@ export const me = async () => {
       method: "GET",
     });
 
-    const usuario = res?.data || res?.mensaje?.data || null;
+    const usuario = extraerPayload(res);
 
     if (res?.ok && usuario) {
-      localStorage.setItem("usuario", JSON.stringify(usuario));
+      localStorage.setItem(
+        "usuario",
+        JSON.stringify({
+          ...usuario,
+          permisos: Array.isArray(usuario.permisos) ? usuario.permisos : [],
+        })
+      );
     }
 
     return {

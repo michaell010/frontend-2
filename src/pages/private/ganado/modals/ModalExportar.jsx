@@ -4,26 +4,10 @@ import { notify } from "../../../../services/notify.service";
 import { getErrorMessage } from "../../../../utils/handleRequest";
 
 const OPCIONES = [
-  {
-    fmt: "CSV",
-    ico: "📄",
-    desc: "Valores separados por coma. Compatible con Excel y Sheets.",
-  },
-  {
-    fmt: "Excel",
-    ico: "📊",
-    desc: "Libro de Excel (.xlsx) con formato.",
-  },
-  {
-    fmt: "PDF",
-    ico: "🗒️",
-    desc: "Reporte imprimible en PDF.",
-  },
-  {
-    fmt: "JSON",
-    ico: "💾",
-    desc: "Datos estructurados para integraciones.",
-  },
+  { fmt: "csv", label: "CSV", ico: "📄", desc: "Valores separados por coma. Compatible con Excel y Sheets." },
+  { fmt: "excel", label: "Excel", ico: "📊", desc: "Libro de Excel (.xlsx) con formato." },
+  { fmt: "pdf", label: "PDF", ico: "🗒️", desc: "Reporte imprimible en PDF." },
+  { fmt: "json", label: "JSON", ico: "💾", desc: "Datos estructurados para integraciones." },
 ];
 
 const escaparCSV = (valor) => {
