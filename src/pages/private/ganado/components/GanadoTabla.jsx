@@ -15,12 +15,24 @@ const COLS = [
 ];
 
 const getFoto = (a) => {
-  if (!a?.foto_url) return defaultCow;
+  const raw = a?.foto_url || a?.foto;
 
-  if (a.foto_url.startsWith("http")) return a.foto_url;
+  if (!raw) return defaultCow;
 
-  const base = import.meta.env.VITE_API_BASE || "http://localhost:3000";
-  return `${base}${a.foto_url}`;
+  const foto = String(raw).trim();
+
+  if (!foto) return defaultCow;
+
+  if (foto.startsWith("http")) return foto;
+
+  const apiUrl = import.meta.env.VITE_API_URL || "";
+  const base = apiUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
+
+  if (!base) return defaultCow;
+
+  const path = foto.startsWith("/") ? foto : `/${foto}`;
+
+  return `${base}${path}`;
 };
 
 export default function GanadoTabla({
@@ -69,7 +81,7 @@ export default function GanadoTabla({
                 <td>
                   <img
                     src={getFoto(a)}
-                    alt={a.nombre || a.codigo}
+                    alt={a.nombre || a.codigo || "Ganado"}
                     style={{
                       width: "46px",
                       height: "46px",
@@ -79,6 +91,7 @@ export default function GanadoTabla({
                       background: "#f8fafc",
                     }}
                     onError={(e) => {
+                      e.currentTarget.onerror = null;
                       e.currentTarget.src = defaultCow;
                     }}
                   />

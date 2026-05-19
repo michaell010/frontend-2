@@ -43,8 +43,10 @@
 
 /* ── Cards de animales ──────────────────── */
 .ganado-cards {
-  display: grid; grid-template-columns: repeat(3,1fr);
-  gap: var(--space-6); margin-bottom: var(--space-8);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
 }
 
 .ganado-card {
@@ -62,50 +64,114 @@
   transform: translateY(-4px);
 }
 
-.ganado-card__img-wrap { height: 200px; overflow: hidden; position: relative; }
+.ganado-card__img-wrap {
+  height: 240px;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(180deg, #eef7f1 0%, #dff0e5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 .ganado-card__img {
-  width: 100%; height: 100%; object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  padding: 6px;
   transition: transform var(--transition-slow);
 }
 
-.ganado-card:hover .ganado-card__img { transform: scale(1.07); }
+.ganado-card:hover .ganado-card__img {
+  transform: scale(1.03);
+}
 
 .ganado-card__id {
-  position: absolute; top: 1rem; left: 1rem;
-  font-family: monospace; font-size: 0.65rem;
-  background: rgba(255,255,255,0.9);
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-family: monospace;
+  font-size: 0.65rem;
+  background: rgba(255, 255, 255, 0.9);
   color: var(--green-800);
-  padding: 0.2rem 0.6rem; border-radius: 4px;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
   border: 1px solid var(--green-200);
 }
 
 .ganado-card__estado {
-  position: absolute; top: 1rem; right: 1rem;
-  font-size: 0.62rem; font-weight: 900;
-  text-transform: uppercase; letter-spacing: 0.08em;
-  padding: 0.25rem 0.75rem; border-radius: var(--radius-full);
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
   color: #fff;
 }
 
-.ganado-card__body { padding: 1.25rem 1.5rem; }
+.ganado-card__body {
+  padding: 1.25rem 1.5rem;
+}
 
-.ganado-card__nombre { font-size: 1.2rem; font-weight: 900; color: var(--text-primary); }
-.ganado-card__raza   { font-size: 0.72rem; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.1em; margin: 4px 0 1rem; }
-.ganado-card__peso   { font-size: 1.5rem; font-weight: 900; color: var(--green-700); }
-.ganado-card__peso-lbl { font-size: 0.65rem; color: var(--text-faint); text-transform: uppercase; }
+.ganado-card__nombre {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--text-primary);
+}
 
-.ganado-card__metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem; }
+.ganado-card__raza {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 4px 0 1rem;
+}
+
+.ganado-card__peso {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--green-700);
+}
+
+.ganado-card__peso-lbl {
+  font-size: 0.65rem;
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+
+.ganado-card__metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
 
 .ganado-card__metric {
   background: var(--green-50);
   border: 1px solid var(--green-100);
   border-radius: var(--radius-md);
-  padding: 0.65rem; display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.ganado-card__metric-lbl { font-size: 0.6rem; color: var(--text-faint); text-transform: uppercase; }
-.ganado-card__metric-val { font-size: 0.82rem; font-weight: 700; color: var(--text-primary); }
+.ganado-card__metric-lbl {
+  font-size: 0.6rem;
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+
+.ganado-card__metric-val {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
 
 /* ── Tabla ──────────────────────────────── */
 .ganado-table-section {
