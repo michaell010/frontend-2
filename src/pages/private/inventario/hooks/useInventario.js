@@ -213,33 +213,41 @@ export function useInventario() {
     ];
   }, [productos]);
 
-  const suministros = useMemo(() => {
-    return productos.slice(0, 5).map((p) => ({
+  const obtenerNivel = (stock) => {
+  const pct = Number(stock || 0);
+
+  if (pct < 20) return "critico";
+  if (pct < 50) return "bajo";
+  return "normal";
+};
+
+const suministros = useMemo(() => {
+  return productos.slice(0, 5).map((p) => {
+    const pct = Math.max(0, Math.min(Number(p.stock || 0), 100));
+
+    return {
       nombre: p.nombre,
-      pct: p.stock || 0,
-      nivel:
-        p.estadoKey === "critico"
-          ? "critico"
-          : p.estadoKey === "stock_bajo"
-          ? "bajo"
-          : "normal",
-    }));
-  }, [productos]);
+      pct,
+      nivel: obtenerNivel(pct),
+    };
+  });
+}, [productos]);
 
-  const silos = useMemo(() => {
-    const alimentos = productos.filter((p) => p.tipo === "Alimento").slice(0, 3);
+const silos = useMemo(() => {
+  const alimentos = productos
+    .filter((p) => p.tipo === "Alimento")
+    .slice(0, 3);
 
-    return alimentos.map((p) => ({
+  return alimentos.map((p) => {
+    const pct = Math.max(0, Math.min(Number(p.stock || 0), 100));
+
+    return {
       label: p.nombre || "Sin nombre",
-      pct: p.stock || 0,
-      nivel:
-        p.estadoKey === "critico"
-          ? "critico"
-          : p.estadoKey === "stock_bajo"
-          ? "bajo"
-          : "normal",
-    }));
-  }, [productos]);
+      pct,
+      nivel: obtenerNivel(pct),
+    };
+  });
+}, [productos]);
 
   const estadisticasHero = useMemo(() => {
     const totalProductos = productos.length;

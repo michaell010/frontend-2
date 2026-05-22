@@ -13,8 +13,8 @@ const limpiarSesion = () => {
 };
 
 const redirigirLoginSiCorresponde = () => {
-  if (window.location.pathname !== "/login") {
-    window.location.href = "/login";
+  if (window.location.hash !== "#/login") {
+    window.location.href = "/frontend-2/#/login";
   }
 };
 

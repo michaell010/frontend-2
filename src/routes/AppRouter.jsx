@@ -1,10 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { getUsuarioActual } from "../services/AuthService";
 
 // Layout
 import PrivateLayout from "../components/layout/PrivateLayout";
 
-// Páginas públicas
+// Públicas
 import Home from "../pages/public/Home";
 import Login from "../pages/public/Login";
 import ForgotPassword from "../pages/public/ForgotPassword";
@@ -13,7 +13,7 @@ import ResetPassword from "../pages/public/ResetPassword";
 // Dashboard
 import DashBoard from "../pages/private/dashboard/DashBoard";
 
-// Módulos privados
+// Privadas
 import ListadoGanado from "../pages/private/ganado/ListadoGanado";
 import ListadoAlimentacion from "../pages/private/alimentacion/ListadoAlimentacion";
 import ListadoEventos from "../pages/private/eventos/ListadoEventos";
@@ -31,6 +31,7 @@ function ProtectedPermission({ permiso, children }) {
     return <Navigate to="/login" replace />;
   }
 
+  // Admin entra a todo
   if (usuario?.rol === "Administrador") {
     return children;
   }
@@ -46,16 +47,22 @@ function ProtectedPermission({ permiso, children }) {
 
 export default function AppRouter() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
-        {/* ── Públicas ── */}
+
+        {/* ═══════════════════════════════
+            RUTAS PÚBLICAS
+        ═══════════════════════════════ */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* ── Privadas ── */}
+        {/* ═══════════════════════════════
+            RUTAS PRIVADAS
+        ═══════════════════════════════ */}
         <Route element={<PrivateLayout />}>
+
           <Route path="/dashboard" element={<DashBoard />} />
 
           <Route
@@ -147,11 +154,15 @@ export default function AppRouter() {
               </ProtectedPermission>
             }
           />
+
         </Route>
 
-        {/* ── Fallback ── */}
+        {/* ═══════════════════════════════
+            FALLBACK
+        ═══════════════════════════════ */}
         <Route path="*" element={<Navigate to="/" replace />} />
+
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

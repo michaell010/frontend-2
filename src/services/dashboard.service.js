@@ -83,13 +83,6 @@ export const MODULOS_DATA = [
     href: "/finanzas",
     permiso: "cockpit.ver",
   },
-  {
-    img: icoDashboard,
-    label: "Mando Central",
-    desc: "Vista ejecutiva",
-    href: "/dashboard",
-    permiso: "dashboard.ver",
-  },
 ];
 
 /* ── Utilidades ─────────────────────────────────── */

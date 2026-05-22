@@ -1,50 +1,97 @@
 // InventarioSuministros.jsx
 import "../../../../styles/modules/Inventario.css";
 
-const nivelColor = (n) =>
-  n === "critico" ? "#ef4444" : n === "bajo" ? "#f59e0b" : "#16a34a";
+const normalizarPct = (valor) => {
+  const n = Number(valor || 0);
+  return Math.max(0, Math.min(Math.round(n), 100));
+};
 
-const nivelGradient = (n) =>
-  n === "critico"
-    ? "linear-gradient(90deg,#dc2626,#f87171)"
-    : n === "bajo"
-    ? "linear-gradient(90deg,#d97706,#fbbf24)"
-    : "linear-gradient(90deg,var(--iv-green-600),var(--iv-green-400))";
+const nivelColor = (nivel) => {
+  if (nivel === "critico") return "#ef4444";
+  if (nivel === "bajo") return "#f59e0b";
+  return "#22c55e";
+};
+
+const nivelGradient = (nivel) => {
+  if (nivel === "critico") return "linear-gradient(90deg,#dc2626,#f87171)";
+  if (nivel === "bajo") return "linear-gradient(90deg,#d97706,#fbbf24)";
+  return "linear-gradient(90deg,#16a34a,#22c55e)";
+};
+
+const obtenerMensajeNivel = (nivel) => {
+  if (nivel === "critico") return "⚠ Reponer urgente";
+  if (nivel === "bajo") return "▲ Stock bajo";
+  return null;
+};
 
 export default function InventarioSuministros({ suministros = [] }) {
+  const alertas = suministros.filter(
+    (s) => s.nivel === "critico" || s.nivel === "bajo"
+  ).length;
+
   return (
     <div className="iv-card iv-sumi-card">
       <div className="iv-sumi-header">
         <h3 className="iv-sumi-header__title">Niveles de Suministro</h3>
-        <span className="iv-sumi-header__sub">
-          {suministros.filter(s => s.nivel !== "normal").length} alertas
+
+        <span
+          className={`iv-sumi-header__sub${
+            alertas === 0 ? " iv-sumi-header__sub--ok" : ""
+          }`}
+        >
+          {alertas} alertas
         </span>
       </div>
 
       <div className="iv-sumi-list">
+        {suministros.length === 0 && (
+          <div className="iv-sumi-empty">
+            No hay suministros registrados.
+          </div>
+        )}
+
         {suministros.map((s, i) => {
-          const col = nivelColor(s.nivel);
+          const pct = normalizarPct(s.pct);
+          const color = nivelColor(s.nivel);
+          const mensaje = obtenerMensajeNivel(s.nivel);
+
           return (
-            <div key={i} className="iv-sumi-item">
+            <div key={`${s.nombre}-${i}`} className="iv-sumi-item">
               <div className="iv-sumi-item__top">
                 <span
                   className="iv-sumi-item__name"
-                  style={{ color: s.nivel === "critico" ? "#ef4444" : "inherit" }}
+                  title={s.nombre}
+                  style={{
+                    color: s.nivel === "critico" ? "#ef4444" : undefined,
+                  }}
                 >
-                  {s.nombre}
+                  {s.nombre || "Sin nombre"}
                 </span>
-                <span className="iv-sumi-item__pct" style={{ color: col }}>
-                  {s.pct}%
+
+                <span className="iv-sumi-item__pct" style={{ color }}>
+                  {pct}%
                 </span>
               </div>
+
               <div className="iv-progress">
                 <div
                   className="iv-progress__fill"
-                  style={{ "--pct": `${s.pct}%`, background: nivelGradient(s.nivel) }}
+                  style={{
+                    "--pct": `${pct}%`,
+                    background: nivelGradient(s.nivel),
+                  }}
                 />
               </div>
-              {s.nivel === "critico" && (
-                <p className="iv-sumi-item__warn">⚠ Reponer urgente</p>
+
+              {mensaje && (
+                <p
+                  className="iv-sumi-item__warn"
+                  style={{
+                    color,
+                  }}
+                >
+                  {mensaje}
+                </p>
               )}
             </div>
           );

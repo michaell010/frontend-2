@@ -3,14 +3,13 @@ import { createRoot } from "react-dom/client";
 import { Toaster } from "react-hot-toast";
 
 import "./index.css";
-import AppRouter from "./routes/AppRouter";
+import App from "./App";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <>
-      <AppRouter />
+      <App />
 
-      {/* 🔥 Toaster GLOBAL */}
       <Toaster
         position="top-right"
         reverseOrder={false}

@@ -48,20 +48,30 @@ const valorFormateado = formatearValorCorto(estadisticasHero?.valorTotal);
           real para tu operación ganadera.
         </p>
 
-        <div className="iv-hero-stats">
-          <div className="iv-hero-stat">
-            <strong>{estadisticasHero?.totalProductos ?? 0}</strong>
-            <span>PRODUCTOS</span>
+        <div className="iv-hero__stats">
+          <div className="iv-hero__stat">
+            <span className="iv-hero__stat-val">
+              {estadisticasHero?.totalProductos ?? 0}
+            </span>
+            <span className="iv-hero__stat-label">Productos</span>
           </div>
 
-          <div className="iv-hero-stat">
-            <strong>{estadisticasHero?.alertasCriticas ?? 0}</strong>
-            <span>ALERTAS CRÍTICAS</span>
+          <span className="iv-hero__stat-div" />
+
+          <div className="iv-hero__stat">
+            <span className="iv-hero__stat-val iv-hero__stat-val--danger">
+              {estadisticasHero?.alertasCriticas ?? 0}
+            </span>
+            <span className="iv-hero__stat-label">Alertas críticas</span>
           </div>
 
-          <div className="iv-hero-stat">
-            <strong>{valorFormateado}</strong>
-            <span>VALOR TOTAL</span>
+          <span className="iv-hero__stat-div" />
+
+          <div className="iv-hero__stat">
+            <span className="iv-hero__stat-val">
+              {valorFormateado}
+            </span>
+            <span className="iv-hero__stat-label">Valor total</span>
           </div>
         </div>
 

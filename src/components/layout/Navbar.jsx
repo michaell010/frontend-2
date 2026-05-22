@@ -170,9 +170,9 @@ export default function Navbar({ collapsed, pageTitle }) {
   };
 
   const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+  logout();
+  window.location.href = "/frontend-2/#/login";
+};
 
   const handleIrAlertas = () => {
     navigate("/dashboard");
