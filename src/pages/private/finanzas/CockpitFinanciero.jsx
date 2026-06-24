@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCockpit } from "./hooks/useCockpit";
 import CockpitHero from "./components/CockpitHero";
 import CockpitKPIs from "./components/CockpitKPIs";
@@ -8,6 +10,8 @@ import CockpitModalDetalle from "./components/CockpitModalDetalle";
 import "../../../styles/modules/Cockpit.css";
 
 export default function CockpitFinanciero() {
+  const navigate = useNavigate();
+
   const {
     kpis,
     barras,
@@ -23,10 +27,27 @@ export default function CockpitFinanciero() {
     handleExportar,
     eliminarTransaccion,
     modalDetalle,
-    setModalDetalle,
+    cerrarModalDetalle,
     verDetalleTransaccion,
     recargarCockpit,
   } = useCockpit();
+
+  const irAEditarVenta = useCallback(
+    (t) => {
+      const idReal =
+        t?.venta_id ||
+        String(t?.id || "")
+          .replace(/^#V-/, "")
+          .replace(/^#LT-/, "");
+
+      cerrarModalDetalle();
+
+      navigate("/ventas", {
+        state: { editarVentaId: idReal },
+      });
+    },
+    [navigate, cerrarModalDetalle]
+  );
 
   if (loading && !kpis.length && !barras.length && !liquidacion.length) {
     return (
@@ -71,9 +92,7 @@ export default function CockpitFinanciero() {
         <CockpitLiquidacion
           items={liquidacion}
           loading={loading}
-          onSeleccionar={(item) => {
-            console.log("liquidacion", item);
-          }}
+          onSeleccionar={(item) => console.log("liquidacion", item)}
         />
       </div>
 
@@ -82,14 +101,15 @@ export default function CockpitFinanciero() {
         busqueda={busqueda}
         onBusqueda={setBusqueda}
         onVer={verDetalleTransaccion}
-        onEditar={(t) => console.log("editar", t)}
+        onEditar={irAEditarVenta}
         onEliminar={eliminarTransaccion}
         loading={loadingBusqueda}
       />
 
       <CockpitModalDetalle
         transaccion={modalDetalle}
-        onClose={() => setModalDetalle(null)}
+        onClose={cerrarModalDetalle}
+        onEditar={irAEditarVenta}
       />
     </div>
   );

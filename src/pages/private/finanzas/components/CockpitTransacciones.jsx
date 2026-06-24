@@ -34,7 +34,6 @@ export default function CockpitTransacciones({
       <div className="ck-tx-header">
         <div>
           <h3 className="ck-tx-header__title">Transacciones Recientes</h3>
-          <p className="ck-tx-header__sub">Base de Datos: CENTRAL_LEDGER</p>
         </div>
 
         <div className="ck-tx-header__actions">

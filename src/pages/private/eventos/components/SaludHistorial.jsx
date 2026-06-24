@@ -39,7 +39,6 @@ export default function SaludHistorial({
       <div className="sl-hist-header">
         <div>
           <h3 className="sl-hist-header__title">Historial Clínico</h3>
-          <p className="sl-hist-header__sub">Base de Datos: HEALTH_RECORDS</p>
         </div>
         <div className="sl-hist-header__actions">
           <div className="sl-search-wrap">

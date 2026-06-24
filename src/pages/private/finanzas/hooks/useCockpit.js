@@ -4,16 +4,12 @@ import {
   getGrowthData,
   getLiquidacion,
   getTransacciones,
-  getTransaccionById,
   deleteTransaccion as deleteTransaccionService,
   exportarReporte,
 } from "../../../../services/cockpit.service";
 
 import { notify } from "../../../../services/notify.service";
-import {
-  executeRequest,
-  getErrorMessage,
-} from "../../../../utils/handleRequest";
+import { executeRequest, getErrorMessage } from "../../../../utils/handleRequest";
 
 export function useCockpit() {
   const [kpis, setKpis] = useState([]);
@@ -39,51 +35,27 @@ export function useCockpit() {
   }, [busqueda]);
 
   const cargarKPIs = useCallback(async () => {
-    try {
-      const data = await getKPIs();
-      setKpis(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error cargando KPIs:", error);
-      setKpis([]);
-      throw error;
-    }
+    const data = await getKPIs();
+    setKpis(Array.isArray(data) ? data : []);
   }, []);
 
   const cargarBarras = useCallback(async (periodo) => {
-    try {
-      const data = await getGrowthData(periodo);
-      setBarras(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error cargando gráfico:", error);
-      setBarras([]);
-      throw error;
-    }
+    const data = await getGrowthData(periodo);
+    setBarras(Array.isArray(data) ? data : []);
   }, []);
 
   const cargarLiquidacion = useCallback(async () => {
-    try {
-      const data = await getLiquidacion();
-      setLiquidacion(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error cargando liquidación:", error);
-      setLiquidacion([]);
-      throw error;
-    }
+    const data = await getLiquidacion();
+    setLiquidacion(Array.isArray(data) ? data : []);
   }, []);
 
   const cargarTransacciones = useCallback(async (textoBusqueda = "") => {
-    try {
-      const filtros = textoBusqueda?.trim()
-        ? { busqueda: textoBusqueda.trim() }
-        : {};
+    const filtros = textoBusqueda?.trim()
+      ? { busqueda: textoBusqueda.trim() }
+      : {};
 
-      const data = await getTransacciones(filtros);
-      setTransacciones(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error cargando transacciones:", error);
-      setTransacciones([]);
-      throw error;
-    }
+    const data = await getTransacciones(filtros);
+    setTransacciones(Array.isArray(data) ? data : []);
   }, []);
 
   const cargarInicial = useCallback(async () => {
@@ -97,8 +69,8 @@ export function useCockpit() {
         cargarBarras(periodoActivo),
       ]);
     } catch (error) {
-      console.error("Error general cargando cockpit:", error);
       const mensaje = getErrorMessage(error);
+      console.error("Error general cargando cockpit:", error);
       setErrorCarga(mensaje);
       notify.error(mensaje);
     } finally {
@@ -137,7 +109,6 @@ export function useCockpit() {
       try {
         await cargarBarras(nuevoPeriodo);
       } catch (error) {
-        console.error("Error cambiando periodo:", error);
         notify.error(getErrorMessage(error));
       } finally {
         setLoading(false);
@@ -147,26 +118,28 @@ export function useCockpit() {
   );
 
   const handleExportar = useCallback(async () => {
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    await exportarReporte({
-      kpis,
-      barras,
-      liquidacion,
-      transacciones,
-      periodoActivo,
-      usuario: JSON.parse(localStorage.getItem("usuario") || "{}"),
-    });
-  } catch (error) {
-    console.error("No se pudo exportar el reporte:", error);
-  } finally {
-    setLoading(false);
-  }
-}, [kpis, barras, liquidacion, transacciones, periodoActivo]);
+    try {
+      await exportarReporte({
+        kpis,
+        barras,
+        liquidacion,
+        transacciones,
+        periodoActivo,
+        usuario: JSON.parse(localStorage.getItem("usuario") || "{}"),
+      });
+    } catch (error) {
+      console.error("No se pudo exportar el reporte:", error);
+      notify.error("No se pudo exportar el reporte");
+    } finally {
+      setLoading(false);
+    }
+  }, [kpis, barras, liquidacion, transacciones, periodoActivo]);
 
   const eliminarTransaccion = useCallback(async (transaccion) => {
-    const idVisual = typeof transaccion === "object" ? transaccion?.id : transaccion;
+    const idVisual =
+      typeof transaccion === "object" ? transaccion?.id : transaccion;
 
     const idReal = String(idVisual || "")
       .replace(/^#V-/, "")
@@ -198,49 +171,17 @@ export function useCockpit() {
           )
         );
 
-        setModalDetalle((prev) => {
-          if (!prev) return null;
-
-          const mismaVenta = String(prev?.venta_id) === String(idReal);
-          const mismoIdVisual = String(prev?.id) === String(idVisual);
-
-          return mismaVenta || mismoIdVisual ? null : prev;
-        });
+        cerrarModalDetalle();
       },
     });
   }, []);
 
-  const verDetalleTransaccion = useCallback(async (transaccion) => {
-    try {
-      const idReal =
-        transaccion?.venta_id ||
-        String(transaccion?.id || "")
-          .replace(/^#V-/, "")
-          .replace(/^#LT-/, "");
+  const verDetalleTransaccion = useCallback((transaccion) => {
+    setModalDetalle({ ...transaccion });
+  }, []);
 
-      if (!idReal) {
-        setModalDetalle(transaccion);
-        return;
-      }
-
-      const detalle = await getTransaccionById(idReal);
-
-      if (!detalle) {
-        setModalDetalle(transaccion);
-        return;
-      }
-
-      setModalDetalle({
-        ...transaccion,
-        ...detalle,
-        venta_id: detalle.id ?? transaccion?.venta_id ?? idReal,
-        id: transaccion?.id ?? `#V-${idReal}`,
-      });
-    } catch (error) {
-      console.error("Error cargando detalle de transacción:", error);
-      notify.error(getErrorMessage(error));
-      setModalDetalle(transaccion);
-    }
+  const cerrarModalDetalle = useCallback(() => {
+    setModalDetalle(null);
   }, []);
 
   return {
@@ -259,6 +200,7 @@ export function useCockpit() {
     eliminarTransaccion,
     modalDetalle,
     setModalDetalle,
+    cerrarModalDetalle,
     verDetalleTransaccion,
     recargarCockpit: cargarInicial,
   };

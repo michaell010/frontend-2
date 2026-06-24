@@ -18,8 +18,7 @@ export default function InventarioModalForm({ producto, onClose, onGuardar }) {
     proveedor: producto?.proveedor ?? "",
     ubicacion: producto?.ubicacion ?? "Finca principal",
     precio_unitario:
-      producto?.precio_unitario !== undefined &&
-      producto?.precio_unitario !== null
+      producto?.precio_unitario !== undefined && producto?.precio_unitario !== null
         ? String(producto.precio_unitario)
         : "",
     notas: producto?.notas ?? "",
@@ -32,7 +31,22 @@ export default function InventarioModalForm({ producto, onClose, onGuardar }) {
     setF((prev) => ({ ...prev, [campo]: valor }));
   };
 
-  const handleSubmit = () => {
+  const cerrarModal = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+    onClose?.();
+  };
+
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose?.();
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e?.preventDefault?.();
+    e?.stopPropagation?.();
+
     if (!f.nombre.trim()) {
       alert("El nombre es obligatorio");
       return;
@@ -48,25 +62,24 @@ export default function InventarioModalForm({ producto, onClose, onGuardar }) {
       cantidad_min: Number(f.cantidad_min || 0),
       proveedor: f.proveedor?.trim() || null,
       ubicacion: f.ubicacion || "Finca principal",
-      precio_unitario:
-        f.precio_unitario !== "" ? Number(f.precio_unitario) : null,
+      precio_unitario: f.precio_unitario !== "" ? Number(f.precio_unitario) : null,
       notas: f.notas?.trim() || null,
       fecha_registro: f.fecha_registro || null,
       activo: Boolean(f.activo),
     };
 
-    console.log("Payload que se envía:", payload);
-    onGuardar(payload);
+    onGuardar?.(payload);
   };
 
   return (
-    <div className="iv-modal-overlay" onClick={onClose}>
-      <div
+    <div className="iv-modal-overlay" onClick={handleOverlayClick}>
+      <form
         className="iv-modal iv-modal--form"
         onClick={(e) => e.stopPropagation()}
+        onSubmit={handleSubmit}
       >
         <div className="iv-modal__header">
-          <div>
+          <div className="iv-modal__head-text">
             <p className="iv-modal__pre">
               {esEdicion ? "Editar Producto" : "Nuevo Producto"}
             </p>
@@ -74,7 +87,13 @@ export default function InventarioModalForm({ producto, onClose, onGuardar }) {
               {esEdicion ? f.nombre || "Editar producto" : "Registro de Inventario"}
             </h2>
           </div>
-          <button className="iv-modal__close" onClick={onClose}>
+
+          <button
+            type="button"
+            className="iv-modal__close"
+            onClick={cerrarModal}
+            aria-label="Cerrar modal"
+          >
             ✕
           </button>
         </div>
@@ -206,14 +225,19 @@ export default function InventarioModalForm({ producto, onClose, onGuardar }) {
         </div>
 
         <div className="iv-modal__footer">
-          <button className="iv-btn iv-btn--ghost" onClick={onClose}>
+          <button
+            type="button"
+            className="iv-btn iv-btn--ghost"
+            onClick={cerrarModal}
+          >
             Cancelar
           </button>
-          <button className="iv-btn iv-btn--primary" onClick={handleSubmit}>
+
+          <button type="submit" className="iv-btn iv-btn--primary">
             {esEdicion ? "Guardar Cambios" : "Crear Producto"}
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

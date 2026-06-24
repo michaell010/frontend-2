@@ -1383,3 +1383,137 @@
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, var(--vt-verde-cosecha), var(--vt-dorado-claro));
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   FIX DEFINITIVO MODAL FORM VENTAS
+   X, Cancelar, click afuera, capas y scroll interno
+   ═══════════════════════════════════════════════════════════════════ */
+
+.vt-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(10, 43, 26, 0.65) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 99999 !important;
+  padding: 18px !important;
+  pointer-events: auto !important;
+  animation: vtFadeIn 0.2s ease !important;
+}
+
+.vt-modal {
+  position: relative !important;
+  z-index: 100000 !important;
+  pointer-events: auto !important;
+  background: var(--vt-surface) !important;
+  border-radius: var(--vt-radius-xl) !important;
+  box-shadow: var(--vt-shadow-xl), var(--vt-shadow-gold) !important;
+  width: 100% !important;
+  max-width: 460px !important;
+  max-height: calc(100vh - 36px) !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(212, 165, 60, 0.15) !important;
+  animation: vtSlideUp 0.3s var(--vt-transition-boom) !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.vt-modal--form {
+  max-width: 520px !important;
+}
+
+.vt-modal__header {
+  position: relative !important;
+  z-index: 3 !important;
+  flex-shrink: 0 !important;
+}
+
+.vt-modal__header::before {
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+.vt-modal__header > * {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.vt-modal__close {
+  position: relative !important;
+  z-index: 10 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  width: 34px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-size: 1rem !important;
+  user-select: none !important;
+}
+
+.vt-modal__close:hover {
+  background: rgba(255, 255, 255, 0.28) !important;
+  transform: scale(1.04) !important;
+}
+
+.vt-modal__body {
+  position: relative !important;
+  z-index: 2 !important;
+  flex: 1 1 auto !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+}
+
+.vt-modal__footer {
+  position: relative !important;
+  z-index: 3 !important;
+  flex-shrink: 0 !important;
+}
+
+.vt-modal__footer .vt-btn,
+.vt-modal__body .vt-btn,
+.vt-modal__close {
+  pointer-events: auto !important;
+}
+
+.vt-modal__footer .vt-btn {
+  position: relative !important;
+  z-index: 4 !important;
+}
+
+.vt-form__input,
+.vt-form__select,
+.vt-form__textarea,
+.vt-btn {
+  pointer-events: auto !important;
+}
+
+.vt-form__item-box {
+  position: relative !important;
+  z-index: 1 !important;
+  border: 1px solid rgba(212, 165, 60, 0.16);
+  border-radius: var(--vt-radius-md);
+  padding: 0.95rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-width: 640px) {
+  .vt-modal {
+    max-width: 100% !important;
+    max-height: calc(100vh - 24px) !important;
+  }
+
+  .vt-modal-overlay {
+    padding: 12px !important;
+  }
+}

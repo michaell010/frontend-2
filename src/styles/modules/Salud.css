@@ -1661,3 +1661,30 @@
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, var(--sl-verde-cosecha), var(--sl-dorado-claro));
 }
+
+.sl-modal-overlay {
+  z-index: 9999;
+}
+
+.sl-modal {
+  position: relative;
+}
+
+.sl-modal__header {
+  position: relative;
+}
+
+.sl-modal__header::before {
+  pointer-events: none;
+}
+
+.sl-modal__close {
+  position: relative;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.sl-modal__footer {
+  position: relative;
+  z-index: 10;
+}

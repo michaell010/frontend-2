@@ -6,6 +6,7 @@ import { ConfigRoles } from "./components/ConfigRoles";
 import { ConfigSistema } from "./components/ConfigSistema";
 import { getRolActual } from "../../../services/ConfiguracionService";
 import "../../../styles/modules/Modulos.css";
+import "../../../styles/modules/ConfiguracionRoles.css";
 
 export default function Configuracion() {
   const [tab, setTab] = useState("Finca");

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "../../../../styles/modules/Ventas.css";
 
 const ESTADOS = ["Pendiente", "Completado"];
@@ -37,7 +37,23 @@ export default function VentasModalForm({ venta, onClose, onGuardar }) {
     items: itemsIniciales,
   });
 
-  const set = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
+
+    document.addEventListener("keydown", handleEsc);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleEsc);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  const set = (key, value) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
 
   const agregarItem = () => {
     setForm((prev) => ({
@@ -91,10 +107,7 @@ export default function VentasModalForm({ venta, onClose, onGuardar }) {
         return acc + Number(item.precio || 0);
       }
 
-      return (
-        acc +
-        Number(item.cantidad || 0) * Number(item.precio_unitario || 0)
-      );
+      return acc + Number(item.cantidad || 0) * Number(item.precio_unitario || 0);
     }, 0);
   }, [form.items]);
 
@@ -107,11 +120,7 @@ export default function VentasModalForm({ venta, onClose, onGuardar }) {
 
     for (const item of items) {
       if (item.tipo === "ganado") {
-        if (
-          !item.codigo?.trim() ||
-          item.precio === "" ||
-          Number(item.precio) <= 0
-        ) {
+        if (!item.codigo?.trim() || item.precio === "" || Number(item.precio) <= 0) {
           continue;
         }
 
@@ -213,10 +222,16 @@ export default function VentasModalForm({ venta, onClose, onGuardar }) {
   const itemsRender = Array.isArray(form.items) ? form.items : [];
 
   return (
-    <div className="vt-modal-overlay" onClick={onClose}>
+    <div
+      className="vt-modal-overlay vt-modal-overlay--active"
+      onClick={onClose}
+      role="presentation"
+    >
       <div
         className="vt-modal vt-modal--form"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
       >
         <div className="vt-modal__header">
           <div>
@@ -227,7 +242,16 @@ export default function VentasModalForm({ venta, onClose, onGuardar }) {
               {esEdicion ? venta?.id : "Registro de venta"}
             </h2>
           </div>
-          <button className="vt-modal__close" onClick={onClose}>
+
+          <button
+            type="button"
+            className="vt-modal__close"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose?.();
+            }}
+            aria-label="Cerrar"
+          >
             ✕
           </button>
         </div>
@@ -283,11 +307,7 @@ export default function VentasModalForm({ venta, onClose, onGuardar }) {
 
           <div className="vt-form__row">
             <label className="vt-form__label">Ítems de la venta</label>
-            <button
-              type="button"
-              className="vt-btn vt-btn--outline"
-              onClick={agregarItem}
-            >
+            <button type="button" className="vt-btn vt-btn--outline" onClick={agregarItem}>
               + Agregar ítem
             </button>
           </div>
@@ -317,9 +337,7 @@ export default function VentasModalForm({ venta, onClose, onGuardar }) {
                 {item.tipo !== "ganado" && (
                   <div className="vt-form__row">
                     <label className="vt-form__label">
-                      {item.tipo === "producto"
-                        ? "ID del producto"
-                        : "ID de producción"}
+                      {item.tipo === "producto" ? "ID del producto" : "ID de producción"}
                     </label>
                     <input
                       className="vt-form__input"
@@ -385,11 +403,7 @@ export default function VentasModalForm({ venta, onClose, onGuardar }) {
                       min="0"
                       value={item.precio_unitario}
                       onChange={(e) =>
-                        actualizarItem(
-                          item.tempId,
-                          "precio_unitario",
-                          e.target.value
-                        )
+                        actualizarItem(item.tempId, "precio_unitario", e.target.value)
                       }
                       placeholder="Precio unitario"
                     />
@@ -422,10 +436,25 @@ export default function VentasModalForm({ venta, onClose, onGuardar }) {
         </div>
 
         <div className="vt-modal__footer">
-          <button className="vt-btn vt-btn--ghost" onClick={onClose}>
+          <button
+            type="button"
+            className="vt-btn vt-btn--ghost"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose?.();
+            }}
+          >
             Cancelar
           </button>
-          <button className="vt-btn vt-btn--primary" onClick={handleSubmit}>
+
+          <button
+            type="button"
+            className="vt-btn vt-btn--primary"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSubmit();
+            }}
+          >
             {esEdicion ? "Guardar cambios" : "Crear venta"}
           </button>
         </div>

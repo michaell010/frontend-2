@@ -1147,9 +1147,14 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 1.5rem;
-  background: linear-gradient(135deg, var(--iv-verde-cosecha) 0%, var(--iv-verde-prado) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--iv-verde-cosecha) 0%,
+    var(--iv-verde-prado) 100%
+  );
   position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 
 .iv-modal__header::before {
@@ -1159,8 +1164,15 @@
   right: -30px;
   width: 100px;
   height: 100px;
-  background: radial-gradient(circle, rgba(212, 165, 60, 0.2), transparent);
+  background: radial-gradient(
+    circle,
+    rgba(212, 165, 60, 0.2),
+    transparent
+  );
   border-radius: 50%;
+
+  pointer-events: none;
+  z-index: 1;
 }
 
 .iv-modal__pre {
@@ -1181,14 +1193,34 @@
 }
 
 .iv-modal__close {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--iv-radius-sm);
+  position: relative;
+  z-index: 9999;
+
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 50%;
+
   color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+
   cursor: pointer;
-  padding: 4px 10px;
-  font-size: 0.8rem;
-  transition: var(--iv-transition);
+  pointer-events: auto;
+
+  transition: all .25s ease;
+}
+
+.iv-modal__close:hover{
+  background:#ef4444;
+  border-color:#ef4444;
+  transform:rotate(90deg);
 }
 
 .iv-modal__close:hover {

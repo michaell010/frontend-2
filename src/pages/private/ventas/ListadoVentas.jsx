@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+
 import useVentas from "./hooks/useVentas";
 import VentasHero from "./components/VentasHero";
 import VentasKPIs from "./components/VentasKPIs";
@@ -8,6 +11,9 @@ import VentasModalEliminar from "./modals/VentasModalEliminar";
 import "../../../styles/modules/Ventas.css";
 
 export default function ListadoVentas() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const {
     ventas,
     ventasTotales,
@@ -34,6 +40,21 @@ export default function ListadoVentas() {
     handleGuardar,
     handleExportar,
   } = useVentas();
+
+  useEffect(() => {
+    const editarVentaId = location.state?.editarVentaId;
+
+    if (!editarVentaId) return;
+
+    handleEditar({
+      venta_id: editarVentaId,
+    });
+
+    navigate("/ventas", {
+      replace: true,
+      state: {},
+    });
+  }, [location.state, handleEditar, navigate]);
 
   return (
     <div className="vt-animate-in">

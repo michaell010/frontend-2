@@ -121,7 +121,7 @@ export default function Potreros() {
               <option value="Descanso">Descanso</option>
             </select>
 
-            <button className="pt-btn pt-btn--primary" onClick={abrirCrear}>
+            <button className="pt-btn pt-btn--primary pt-btn--sm pt-btn-agregar" onClick={abrirCrear}>
               ➕ Agregar
             </button>
           </div>

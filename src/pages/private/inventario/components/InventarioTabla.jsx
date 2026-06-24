@@ -19,7 +19,6 @@ export default function InventarioTabla({
       <div className="iv-tabla-header">
         <div>
           <h3 className="iv-tabla-header__title">Flujos de Carga</h3>
-          <p className="iv-tabla-header__sub">Base de Datos: INVENTORY_LEDGER</p>
         </div>
         <div className="iv-tabla-header__actions">
           <div className="iv-search-wrap">

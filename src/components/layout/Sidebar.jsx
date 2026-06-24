@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+
 import { getUsuarioActual } from "../../services/AuthService";
 import { usuarioTienePermiso } from "../../services/dashboard.service";
 
@@ -102,12 +103,53 @@ const MENU = [
   },
 ];
 
-export default function Sidebar({ collapsed, onToggle }) {
+export default function Sidebar({
+  open = false,
+  collapsed = false,
+  onClose,
+  onToggleCollapse,
+
+  mobileOpen = false,
+  onMobileClose,
+  onToggle,
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const usuario = getUsuarioActual();
 
-  const isActive = (href) => location.pathname.startsWith(href);
+  const sidebarOpen = open || mobileOpen;
+  const closeSidebar = onClose || onMobileClose;
+  const toggleCollapse = onToggleCollapse || onToggle;
+
+  useEffect(() => {
+    if (sidebarOpen) {
+      closeSidebar?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  const isMobile = () => window.innerWidth <= 768;
+
+  const isActive = (href) => {
+    return location.pathname.startsWith(href);
+  };
+
+  const handleNavigate = (href) => {
+    navigate(href);
+
+    if (isMobile()) {
+      closeSidebar?.();
+    }
+  };
+
+  const handleLogoClick = () => {
+    if (sidebarOpen && isMobile()) {
+      closeSidebar?.();
+      return;
+    }
+
+    navigate("/dashboard");
+  };
 
   const menuPermitido = useMemo(() => {
     return MENU.map((grupo) => ({
@@ -119,72 +161,103 @@ export default function Sidebar({ collapsed, onToggle }) {
   }, [usuario]);
 
   return (
-    <aside className={`gc-sidebar${collapsed ? " collapsed" : ""}`}>
+    <>
       <div
-        className="gc-sidebar__logo"
-        onClick={() => navigate("/dashboard")}
-        style={{ cursor: "pointer" }}
+        className={`gc-sidebar-overlay ${sidebarOpen ? "active" : ""}`}
+        onClick={closeSidebar}
+        aria-hidden="true"
+      />
+
+      <aside
+        className={`gc-sidebar ${collapsed ? "collapsed is-collapsed" : ""} ${
+          sidebarOpen ? "mobile-open is-open" : ""
+        }`}
       >
-        <div className="gc-sidebar__logo-icon">
-          <img
-            src={icoCow}
-            alt="GanaControl"
-            style={{ width: 24, height: 24, objectFit: "contain" }}
-          />
+        <div className="gc-sidebar__mobile-head">
+          <button
+            type="button"
+            className="gc-sidebar__mobile-close"
+            onClick={closeSidebar}
+            aria-label="Cerrar menú"
+          >
+            ☰
+          </button>
         </div>
 
-        <div className="gc-sidebar__logo-text">
-          <span className="gc-sidebar__logo-name">GanaControl</span>
-          <span className="gc-sidebar__logo-tag">Gestión Ganadera</span>
-        </div>
-      </div>
-
-      <nav className="gc-sidebar__nav">
-        {menuPermitido.map((grupo) => (
-          <div key={grupo.seccion}>
-            <div className="gc-sidebar__section-label">{grupo.seccion}</div>
-
-            {grupo.items.map((item) => (
-              <button
-                key={item.href}
-                className={`gc-sidebar__item${
-                  isActive(item.href) ? " active" : ""
-                }`}
-                data-label={item.label}
-                onClick={() => navigate(item.href)}
-                type="button"
-              >
-                <span className="gc-sidebar__item-icon">
-                  <img
-                    src={item.img}
-                    alt={item.label}
-                    style={{
-                      width: 22,
-                      height: 22,
-                      objectFit: "contain",
-                      filter: "brightness(0) invert(1)",
-                      opacity: isActive(item.href) ? 1 : 0.75,
-                    }}
-                  />
-                </span>
-
-                <span className="gc-sidebar__item-label">{item.label}</span>
-              </button>
-            ))}
-          </div>
-        ))}
-      </nav>
-
-      <div className="gc-sidebar__collapse">
-        <button
-          className="gc-sidebar__collapse-btn"
-          onClick={onToggle}
-          type="button"
+        <div
+          className="gc-sidebar__logo"
+          onClick={handleLogoClick}
+          style={{ cursor: "pointer" }}
         >
-          <span className="gc-sidebar__collapse-icon">◀</span>
-          <span className="gc-sidebar__item-label">Colapsar</span>
-        </button>
-      </div>
-    </aside>
+          <div className="gc-sidebar__logo-icon">
+            <img
+              src={icoCow}
+              alt="GanaControl"
+              style={{
+                width: 24,
+                height: 24,
+                objectFit: "contain",
+              }}
+            />
+          </div>
+
+          <div className="gc-sidebar__logo-text">
+            <span className="gc-sidebar__logo-name">GanaControl</span>
+            <span className="gc-sidebar__logo-tag">Gestión Ganadera</span>
+          </div>
+        </div>
+
+        <nav className="gc-sidebar__nav">
+          {menuPermitido.map((grupo) => (
+            <div key={grupo.seccion} className="gc-sidebar__group">
+              <div className="gc-sidebar__section-label">{grupo.seccion}</div>
+
+              {grupo.items.map((item) => {
+                const active = isActive(item.href);
+
+                return (
+                  <button
+                    key={item.href}
+                    type="button"
+                    className={`gc-sidebar__item ${active ? "active" : ""}`}
+                    data-label={item.label}
+                    onClick={() => handleNavigate(item.href)}
+                  >
+                    <span className="gc-sidebar__item-icon">
+                      <img
+                        src={item.img}
+                        alt={item.label}
+                        style={{
+                          width: 22,
+                          height: 22,
+                          objectFit: "contain",
+                          filter: "brightness(0) invert(1)",
+                          opacity: active ? 1 : 0.75,
+                        }}
+                      />
+                    </span>
+
+                    <span className="gc-sidebar__item-label">
+                      {item.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+
+        <div className="gc-sidebar__collapse">
+          <button
+            className="gc-sidebar__collapse-btn"
+            onClick={toggleCollapse}
+            type="button"
+          >
+            <span className="gc-sidebar__collapse-icon">◀</span>
+            <span className="gc-sidebar__item-label">Colapsar</span>
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }

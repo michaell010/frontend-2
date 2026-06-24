@@ -207,10 +207,10 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
   };
 
   return (
-    <div className="sl-modal-overlay" onClick={onClose}>
+    <div className="sl-modal-overlay" onMouseDown={onClose}>
       <div
         className="sl-modal sl-modal--form"
-        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="sl-modal__header">
           <div>
@@ -224,7 +224,7 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
             </h2>
           </div>
 
-          <button className="sl-modal__close" onClick={onClose}>
+          <button type="button" className="sl-modal__close" onClick={onClose}>
             ✕
           </button>
         </div>
@@ -430,11 +430,11 @@ export default function SaludModalForm({ evento, onClose, onGuardar }) {
         </div>
 
         <div className="sl-modal__footer">
-          <button className="sl-btn sl-btn--ghost" onClick={onClose}>
+          <button type="button" className="sl-btn sl-btn--ghost" onClick={onClose}>
             Cancelar
           </button>
 
-          <button className="sl-btn sl-btn--primary" onClick={handleSubmit}>
+          <button type="button" className="sl-btn sl-btn--primary" onClick={handleSubmit}>
             {esEdicion ? "Guardar Cambios" : "Crear Evento"}
           </button>
         </div>

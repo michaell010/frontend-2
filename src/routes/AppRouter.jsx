@@ -131,7 +131,7 @@ export default function AppRouter() {
           <Route
             path="/ventas"
             element={
-              <ProtectedPermission permiso="ventas.ver">
+              <ProtectedPermission permiso="dashboard.ver">
                 <ListadoVentas />
               </ProtectedPermission>
             }

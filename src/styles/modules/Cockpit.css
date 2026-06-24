@@ -1416,3 +1416,25 @@
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, var(--ck-verde-cosecha), var(--ck-dorado-claro));
 }
+
+.ck-modal-overlay--portal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+}
+
+.ck-modal--portal {
+  position: relative !important;
+  z-index: 1000000 !important;
+  pointer-events: auto !important;
+}
+
+.ck-modal__close--force {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  z-index: 1000001 !important;
+  display: grid !important;
+  place-items: center !important;
+}

@@ -1426,3 +1426,101 @@
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, var(--pt-primary-2), var(--pt-dorado-claro));
 }
+
+/* Fix botón Agregar recortado */
+.pt-tabla-section {
+  overflow: visible;
+}
+
+.pt-tabla-header {
+  overflow: visible;
+}
+
+.pt-tabla-controls {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.pt-tabla-controls .pt-search {
+  width: clamp(230px, 24vw, 320px);
+  min-width: 220px;
+  flex-shrink: 1;
+}
+
+.pt-tabla-controls .pt-select {
+  width: 190px;
+  min-width: 160px;
+  flex-shrink: 0;
+}
+
+.pt-tabla-controls .pt-btn--primary {
+  min-width: 130px;
+  height: 48px;
+  padding-inline: 1.15rem;
+  flex-shrink: 0;
+  justify-content: center;
+  overflow: visible;
+}
+
+@media (max-width: 1100px) {
+  .pt-tabla-controls {
+    flex-wrap: wrap;
+  }
+
+  .pt-tabla-controls .pt-search,
+  .pt-tabla-controls .pt-select,
+  .pt-tabla-controls .pt-btn--primary {
+    width: 100%;
+  }
+}
+
+/* FIX definitivo botón Agregar en historial */
+.pt-tabla-section,
+.pt-tabla-header {
+  overflow: visible !important;
+}
+
+.pt-tabla-header {
+  display: grid !important;
+  grid-template-columns: 1fr auto;
+}
+
+.pt-tabla-controls {
+  display: grid !important;
+  grid-template-columns: minmax(240px, 320px) 220px 140px;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 100%;
+}
+
+.pt-tabla-controls .pt-search,
+.pt-tabla-controls .pt-select,
+.pt-tabla-controls .pt-btn-agregar {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.pt-btn-agregar {
+  min-width: 140px !important;
+  height: 48px !important;
+  padding: 0 1rem !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+
+@media (max-width: 1250px) {
+  .pt-tabla-header {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pt-tabla-controls {
+    grid-template-columns: 1fr 220px 140px;
+  }
+}
+
+@media (max-width: 780px) {
+  .pt-tabla-controls {
+    grid-template-columns: 1fr !important;
+  }
+}

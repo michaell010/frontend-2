@@ -82,19 +82,12 @@ export default function GanadoTabla({
                   <img
                     src={getFoto(a)}
                     alt={a.nombre || a.codigo || "Ganado"}
-                    style={{
-                      width: "46px",
-                      height: "46px",
-                      objectFit: "cover",
-                      borderRadius: "12px",
-                      border: "1px solid #e5e7eb",
-                      background: "#f8fafc",
-                    }}
+                    className="gc-table__thumb" // <--- MUY IMPORTANTE: Añadir esta clase
                     onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = defaultCow;
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = defaultCow;
                     }}
-                  />
+                />
                 </td>
 
                 <td className="cell-id">{a.codigo || a.id}</td>

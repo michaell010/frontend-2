@@ -1,11 +1,9 @@
+// src/pages/Configuracion/hooks/useRoles.js
 import { useEffect, useState, useCallback } from "react";
 import { getRoles, updateRol } from "../../../../services/ConfiguracionService";
-
 import { notify } from "../../../../services/notify.service";
-import {
-  executeRequest,
-  getErrorMessage,
-} from "../../../../utils/handleRequest";
+import { executeRequest, getErrorMessage } from "../../../../utils/handleRequest";
+import { getAllPermissionCodes } from "../../../../utils/permissionCatalog";
 
 export function useRoles() {
   const [roles, setRoles] = useState([]);
@@ -38,12 +36,15 @@ export function useRoles() {
   }, [cargarRoles]);
 
   const abrirEditar = (r) => {
-    setDraft({ ...r, permisos: [...(r.permisos || [])] });
+    // Asegurar que los permisos sean un array
+    const permisos = Array.isArray(r.permisos) ? [...r.permisos] : [];
+    setDraft({ ...r, permisos });
     setModalRol(r);
   };
 
   const cerrarModal = () => {
     setModalRol(null);
+    setDraft(null);
   };
 
   const guardar = async () => {
@@ -93,6 +94,14 @@ export function useRoles() {
     }));
   };
 
+  // Función para actualizar permisos completos (usada desde el modal editable)
+  const actualizarPermisos = (nuevosPermisos) => {
+    setDraft((prev) => ({
+      ...prev,
+      permisos: [...nuevosPermisos],
+    }));
+  };
+
   return {
     roles,
     loading,
@@ -107,6 +116,7 @@ export function useRoles() {
     guardar,
     agregarPermiso,
     quitarPermiso,
+    actualizarPermisos,
     recargarRoles: cargarRoles,
   };
 }

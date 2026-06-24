@@ -34,7 +34,6 @@ export default function VentasTabla({
       <div className="vt-tabla-header">
         <div>
           <h3 className="vt-tabla-header__title">Historial de Ventas</h3>
-          <p className="vt-tabla-header__sub">Base de Datos: VENTAS_LEDGER</p>
         </div>
 
         <div className="vt-tabla-header__actions">

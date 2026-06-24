@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
+
 import { isAuthenticated } from "../../services/AuthService";
+
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
+
 import "../../styles/Sidebar.css";
 
 const PAGE_TITLES = {
@@ -21,7 +24,17 @@ const PAGE_TITLES = {
 
 export default function PrivateLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const location = useLocation();
+
+  useEffect(() => {
+    document.body.classList.toggle("gc-mobile-menu-open", mobileMenuOpen);
+
+    return () => {
+      document.body.classList.remove("gc-mobile-menu-open");
+    };
+  }, [mobileMenuOpen]);
 
   if (!isAuthenticated()) {
     return <Navigate to="/login" replace state={{ from: location }} />;
@@ -29,15 +42,39 @@ export default function PrivateLayout() {
 
   const pageTitle = PAGE_TITLES[location.pathname] || "GanaControl";
 
+  const handleMenuClick = () => {
+    setMobileMenuOpen((open) => !open);
+  };
+
+  const handleMobileClose = () => {
+    setMobileMenuOpen(false);
+  };
+
+  const handleToggleSidebar = () => {
+    if (window.innerWidth <= 768) {
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    setCollapsed((current) => !current);
+  };
+
   return (
     <div className="gc-private-layout">
       <Sidebar
         collapsed={collapsed}
-        onToggle={() => setCollapsed((c) => !c)}
+        onToggle={handleToggleSidebar}
+        mobileOpen={mobileMenuOpen}
+        onMobileClose={handleMobileClose}
       />
 
-      <div className={`gc-main-content${collapsed ? " sidebar-collapsed" : ""}`}>
-        <Navbar collapsed={collapsed} pageTitle={pageTitle} />
+      <div className={`gc-main-content ${collapsed ? "sidebar-collapsed" : ""}`}>
+        <Navbar
+          collapsed={collapsed}
+          pageTitle={pageTitle}
+          onMenuClick={handleMenuClick}
+        />
+
         <main className="gc-page-body">
           <Outlet />
         </main>
